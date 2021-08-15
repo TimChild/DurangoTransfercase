@@ -1,3 +1,5 @@
+#pragma once
+
 // Switch resistance specs
 int SW_SHORTED_HIGH = 150;
 int SW_N_AWD_LOW = 176;
@@ -15,7 +17,7 @@ int SW_LO_HIGH = 5334;
 int SW_OPEN_LOW = 19000;
 
 // Switch debounce time (s)
-float SW_DEBOUNCE = 0.25;
+float SW_DEBOUNCE_S = 0.25;
 
 
 // Mode sensor voltages
@@ -33,25 +35,25 @@ float HIGH_LIMIT = 4.51;
 // TODO: Note to self, shifting from 4LO to AWD first shifts from 4LO to 4HIGH then back to AWD
 
 // Shift parameters
-float MAX_SHIFT_TIME = 1.0;  // Max time to try shifting per position change
-float INTERRUPT_TIME = 0.2;  // Time to wait before reversing direction of failed shift
-float RETRY_TIME = 2.0;  // Time to wait before retrying a shift
+float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
+float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
+float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 
 // From Service Manual:
 // "Current attempt limit values are 25 transitions in 30 seconds and default mode
 // values are 3 transitions every 15 seconds for 5 minutes."
 // Note: Goes into "default mode" if 25 transitions in 30s (i.e. default mode is to cool down)
 
-int CUMULATIVE_SHIFT_TIME = 30; // Count up attempted shifts in last X seconds
+int CUMULATIVE_SHIFT_TIME_S = 30; // Count up attempted shifts in last X seconds
 int MAX_SHIFT_ATTEMPTS_BEFORE_OVERHEAT = 15; // (30 in SM, but counts blocks as 2) Number of shift attempts allowed within CUMULATIVE_SHIFT_TIME
-int MOTOR_COOLDOWN_TIME = 300; // During this time, shifts should delay should be increased to 5s
-float MOTOR_COOLDOWN_ADDITIONAL_DELAY = 5.0; // delay shifts by additional 5s to allow motor to cool down
+int MOTOR_COOLDOWN_TIME_S = 300; // During this time, shifts should delay should be increased to 5s
+float MOTOR_COOLDOWN_ADDITIONAL_DELAY_S = 5.0; // delay shifts by additional 5s to allow motor to cool down
 // Note: Service Manual definces some very complicated procedures for shifting in and out of Neutral if shifts are blocked.
 // I think we will stick to some more simple procedures
 
 
 // Drift correction parameters
-float CHECK_INTERVAL = 2.0; // Time between checks of Drift
+float CHECK_INTERVAL_S = 2.0; // Time between checks of Drift
 
 
 // PWM parameters
@@ -69,4 +71,4 @@ float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start de
 int STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO
 
 // Shift Brake Release time
-int BRAKE_RELEASE_TIME = 3;  // should be between 2 - 5 seconds before and after
+int BRAKE_RELEASE_TIME_S = 3;  // should be between 2 - 5 seconds before and after
