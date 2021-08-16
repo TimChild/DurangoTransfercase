@@ -9,14 +9,17 @@ class OtherOutputs {
         String mainMessage;  // Main message text
         int switchPos;
         int motorPos;
+        float motorVolts;
         String motorMessage; // Message from Motor
 
         void writeDisplay() {
             // Combine the different info into a message to display on screen
+            // TODO: set output to display
         }        
 
         void writeFakePinOuts() {
             // Set pin outs to trick the Car into thinking it's in a certain state
+            // TODO: Set pin outs (probably using pwm analog out with a lowpass filter?)
         }
 
     public:
@@ -53,6 +56,12 @@ class OtherOutputs {
 
         void setMotorMessage(String message) {
             motorMessage = message;
+            writeOutputs();
+        }
+
+        void setMotorVolts(float volts) {
+            motorVolts = volts;
+            writeOutputs();
         }
         
 };

@@ -61,7 +61,6 @@ class SelectorSwitch {
                 lastValidState = currentState;
             }
             output.setSwitchPos(lastValidState);
-            output.writeOutputs();
         }
 };
 

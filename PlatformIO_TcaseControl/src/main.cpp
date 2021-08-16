@@ -34,7 +34,10 @@ void loop() {
   desiredPosition = selector.getSelection();
   currentPosition = motor.getPosition();
   if (currentPosition != desiredPosition) {
-    motor.attemptShift(desiredPosition);
+    motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
+    if (motor.getPosition() != desiredPosition) {
+      // TODO: Think about what to do here if either shift failed, or potentially in bad state?
+    }
   }
   selector.checkState();
 }

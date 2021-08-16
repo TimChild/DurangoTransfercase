@@ -36,8 +36,10 @@ float HIGH_LIMIT = 4.51;
 
 // Shift parameters
 float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
+int MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before shifting back
 float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
 float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
+float POSITION_TOLERANCE = 0.05;  // Stop shifting once within this distance of target voltage
 
 // From Service Manual:
 // "Current attempt limit values are 25 transitions in 30 seconds and default mode
@@ -65,7 +67,8 @@ float PWM_ACCELERATION = 0.05; // Not specified in manual (only says "specified 
 // TODO: This values need to be figured out!
 float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
-
+int PWM_MAX_POWER = 255; // TESTING ONLY: Mostly for testing so that the max power can be reduced
+int PWM_MIN_POWER = 10; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift motor braking parameters (apply 12V to both shift motor wires)
 int STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO
