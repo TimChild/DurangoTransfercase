@@ -1,5 +1,7 @@
 #pragma once
 #include <Arduino.h>
+#include <Wire.h>  // For LiquidCrystal
+#include <LiquidCrystal.h>
 
 
 class OtherOutputs {
@@ -11,10 +13,20 @@ class OtherOutputs {
         int motorPos;
         float motorVolts;
         String motorMessage; // Message from Motor
+        LiquidCrystal screen;
 
         void writeDisplay() {
             // Combine the different info into a message to display on screen
-            // TODO: set output to display
+            String fullText;
+            fullText = mainMessage + "";
+            screen.clear();
+            screen.setCursor(0,0);
+            screen.print(mainMessage);
+            screen.setCursor(0,1);
+            screen.print(switchPos);
+            screen.setCursor(4,1);
+            screen.print(motorMessage);
+            screen.print(motorPos);  // TODO: Fix all of this
         }        
 
         void writeFakePinOuts() {
@@ -23,6 +35,13 @@ class OtherOutputs {
         }
 
     public:
+        OtherOutputs() : screen(0,0,0,0,0,0) {
+        } // TODO: Almost definitely wrong and needs fixing
+
+        OtherOutputs(LiquidCrystal lcd) : screen(lcd) {
+            screen.begin(16, 2);
+        }
+
         void writeOutputs() {
             // Output signals to trick car into thinking it's in correct state
             // And display screen
@@ -32,10 +51,10 @@ class OtherOutputs {
 
         void setBrightness () {
             // Set brightness of screen (might not be supported)
+            // TODO: Set brightness if possible
         }
 
         void setMainMessage (String message) {
-            // 
             mainMessage = message;
             writeOutputs();
         }

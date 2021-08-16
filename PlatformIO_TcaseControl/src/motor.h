@@ -67,26 +67,20 @@ class Motor {
 
         void attemptShift(int desiredPos, int maxAttempts) {
             if (waitForShiftReady() < 0) {
-                return;
+                return;  // Shift not ready and needs to be aborted
             }
 
             initializeShift();
             while (desiredPositionDistance() > 0.05) {
                 addShiftAttempt();
-
-                checkShiftWorking(maxAttempts);
-                stepShiftSpeed(desiredPositionDirection());
+                if (checkShiftWorking(maxAttempts) > 0) {
+                    stepShiftSpeed(desiredPositionDirection());
+                } else {
+                    break;
+                }
                 output.setMotorVolts(readPositionVolts());
             }
-            stopMotor();
-            delay(BRAKE_RELEASE_TIME_S);
-            setBrake(1);
-
-            if (getPosition() == desiredPos) {
-                setLastValidPos(desiredPos);
-                output.setMotorMessage("Shift completed successfully");
-                delay(1000);
-            }
+            endShift();
         }
 
     private:
@@ -109,6 +103,19 @@ class Motor {
             delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
             shiftStart = millis();
+        }
+
+        void endShift(){
+            stopMotor();
+            delay(BRAKE_RELEASE_TIME_S);
+            setBrake(1);
+
+            if (getPosition() == desiredPos) {
+                setLastValidPos(desiredPos);
+                output.setMotorMessage("Shift completed successfully");
+                delay(1000);
+                output.setMotorMessage("");
+            }
         }
 
         int checkShiftWorking(int maxAttempts) {
@@ -135,10 +142,10 @@ class Motor {
         }
 
         void setLastValidPos(int pos) {
+            // sets the variable but also writes to EEPROM so that it can be loaded on next bootup
             lastValidPos = pos;
             setEEPROMposition(pos);
         }
-
 
         /**
          * Read position of mode sensor in Volts
@@ -181,7 +188,7 @@ class Motor {
         }
 
         void setBrake(int brake) {
-            // TODO
+            // TODO: Set brake pin 
             brakeState = brake;
         }
 
@@ -203,16 +210,16 @@ class Motor {
 
                 if (desiredPositionDistance() >= 0.2) {
                     if (abs(motorSpeed) < PWM_MAX_POWER) {
-                        changeSpeed(1, pwmsSinceLastStep);
+                        changeSpeedValue(1, pwmsSinceLastStep);
                     }
                 } else if (motorSpeed > PWM_MIN_POWER) { // If greater than 10% power decellerate
-                    changeSpeed(-1, pwmsSinceLastStep); 
+                    changeSpeedValue(-1, pwmsSinceLastStep); 
                 }
                 setMotor();
             }
         }
 
-        void changeSpeed(int increase, float numPWMs) {  
+        void changeSpeedValue(int increase, float numPWMs) {  
             // Change power output (always positive value)
             int newSpeed;
             if (increase > 0) {
@@ -232,10 +239,10 @@ class Motor {
 
         void setMotor() {
             // TODO: call the motor controller with motorDirection and motorSpeed
-            if (brakeState == 0) {
+            if (brakeState == 0 && motorSpeed > 0 && (motorDirection == 1 || motorDirection == -1)) {
                 // TODO: Send motor command with motorSpeed and motorDirection
             } else {
-                // TODO: Stop motor
+                // TODO: Stop motor (i.e. set pin outputs)
             }
             lastMotorSetTime = millis();
         }
@@ -265,21 +272,18 @@ class Motor {
         }
 
         int waitForShiftReady() {
+            unsigned long waitStart = millis();
             while (shiftReady() != 1)
             {
                 delay(10);  // TODO: Change this to do other things while waiting? I.e. check switchPosition or update screen?
-                if (shiftReady() == -1){
-                    break;
+                if (shiftReady() == -1 || millis() - waitStart > 30*1000){
+                    output.setMotorMessage("Shift not ready and needs to abort");
+                    delay(1000); 
+                    return -1;  
                 }
-            }
-            if (shiftReady() == -1){
-                output.setMotorMessage("Shift not ready and aborted");
-                delay(1000); // TODO: Do I need to prevent immediately diving back into a shift attempt? Maybe OK actually
-                return -1;  
             }
             return 1;
         }
-        
 };
 
 

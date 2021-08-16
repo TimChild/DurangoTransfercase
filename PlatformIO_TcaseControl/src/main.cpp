@@ -4,8 +4,11 @@
 #include "switch.h"
 #include "output.h"
 
-
-OtherOutputs output = OtherOutputs();
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+OtherOutputs output = OtherOutputs(lcd);
+// OtherOutputs output = OtherOutputs(0);
+// OtherOutputs output = OtherOutputs();
 SelectorSwitch selector = SelectorSwitch(output);
 Motor motor = Motor(output);
 int currentPosition;  // Current position of Motor

@@ -16,7 +16,7 @@ class SelectorSwitch {
          */ 
         int readSwitchPositionOhms() {
             // Returns resistance of switch
-            return 2000; // TODO
+            return 2000; // TODO: Read Pin and convert to resistance in Ohms
         }
 
         int getSwitchPosition() {
@@ -41,6 +41,8 @@ class SelectorSwitch {
         // Initialization
         SelectorSwitch(OtherOutputs out) {
             output = out;
+            lastValidState = 1;  // AWD is the default valid option
+            currentState = getSwitchPosition();
         }
 
         int getSelection() {
