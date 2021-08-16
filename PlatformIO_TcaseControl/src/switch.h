@@ -41,7 +41,10 @@ class SelectorSwitch {
         // Initialization
         SelectorSwitch(OtherOutputs out) {
             output = out;
-            lastValidState = 1;  // AWD is the default valid option
+            lastValidState = getSwitchPosition();  // AWD is the default valid option
+            if (lastValidState < 0 || lastValidState > 3) {
+                lastValidState = 1;
+            }
             currentState = getSwitchPosition();
         }
 
@@ -59,7 +62,7 @@ class SelectorSwitch {
                 currentState = newState;
                 timeEnteredState = millis();
             }
-            if (newState >= 0 && newState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
+            if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
                 lastValidState = currentState;
             }
             output.setSwitchPos(lastValidState);

@@ -19,6 +19,8 @@ class OtherOutputs {
             // Combine the different info into a message to display on screen
             String fullText;
             fullText = mainMessage + "";
+            screen.autoscroll();  // Something like this might be useful
+            screen.noAutoscroll(); // And this... might need some delays while writing etc
             screen.clear();
             screen.setCursor(0,0);
             screen.print(mainMessage);
