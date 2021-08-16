@@ -75,3 +75,7 @@ int STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO
 
 // Shift Brake Release time
 int BRAKE_RELEASE_TIME_S = 3;  // should be between 2 - 5 seconds before and after
+
+
+// Other non-service manual values
+int EEPROM_POSITION_ADDRESS = 0;
