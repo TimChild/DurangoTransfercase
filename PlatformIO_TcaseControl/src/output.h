@@ -4,31 +4,39 @@
 #include <LiquidCrystal.h>
 
 
+String makeStringFixedLen(String str, int len) {
+    // Returns a string with a spaces added to reach len
+        str = str.substring(0, len); // Make sure only max len chars
+        for(int i = int(str.length()); i < len; i++) {
+            str += ' ';  
+        }
+    return str;
+}
+
 class OtherOutputs {
     private: 
-        String text; // Full text to display
-        int brightness; // Might not have this
-        String mainMessage;  // Main message text
-        int switchPos;
-        int motorPos;
-        float motorVolts;
-        String motorMessage; // Message from Motor
+        String mainMessage = "";  // Main message text
+        int switchPos = -1; 
+        int motorPos = -1;
+        float motorVolts = -1;
+        String motorMessage = ""; // Message from Motor
         LiquidCrystal screen;
 
         void writeDisplay() {
             // Combine the different info into a message to display on screen
-            String fullText;
-            fullText = mainMessage + "";
-            screen.autoscroll();  // Something like this might be useful
-            screen.noAutoscroll(); // And this... might need some delays while writing etc
-            screen.clear();
+            String displayText;
+            // screen.clear();
+            // screen.autoscroll();  // Something like this might be useful
+            // screen.noAutoscroll(); // And this... might need some delays while writing etc
+            // screen.clear();
+            displayText = makeStringFixedLen(mainMessage, 16);
             screen.setCursor(0,0);
-            screen.print(mainMessage);
+            screen.print(displayText);
+            
+            displayText = makeStringFixedLen(String(switchPos), 4);
+            displayText += makeStringFixedLen(String(motorPos), 12);
             screen.setCursor(0,1);
-            screen.print(switchPos);
-            screen.setCursor(4,1);
-            screen.print(motorMessage);
-            screen.print(motorPos);  // TODO: Fix all of this
+            screen.print(displayText);
         }        
 
         void writeFakePinOuts() {
@@ -40,8 +48,14 @@ class OtherOutputs {
         OtherOutputs() : screen(0,0,0,0,0,0) {
         } // TODO: Almost definitely wrong and needs fixing
 
-        OtherOutputs(LiquidCrystal lcd) : screen(lcd) {
-            screen.begin(16, 2);
+        // OtherOutputs(LiquidCrystal lcd) : screen(lcd) {
+        //     screen.begin(16, 2);
+        // }
+
+        void setLcd(LiquidCrystal lcd) {
+            screen = lcd;
+            screen.begin(16,2);
+            screen.clear();
         }
 
         void writeOutputs() {

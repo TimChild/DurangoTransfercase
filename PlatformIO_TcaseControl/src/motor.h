@@ -39,30 +39,36 @@ void setEEPROMposition(int pos) {
 
 class Motor {
     public:
-        // Initialization
-        Motor(OtherOutputs out) {
-            lastValidPos = readEEPROMposition();
+        void setOutput(OtherOutputs *out) {
             output = out;
-            lastMotorSetTime = millis(); 
         }
 
         int getPosition() {
             // Check position from motor, if valid update last valid and return, 
             // otherwise return last valid
             float currentPosVolts = readPositionVolts();
+
+            Serial.print("Motor-getPosition: currentPosVolts = " + String(currentPosVolts) + "   ");
+            int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
-                return -2;  // Bad position and out of range
+                position = -2;  // Bad position and out of range
             } else if (currentPosVolts > LOCK_LOW && currentPosVolts < LOCK_HIGH) {
-                return 0;
+                position = 0;
             } else if (currentPosVolts > AWD_LOW && currentPosVolts < AWD_HIGH) {
-                return 1;
+                position = 1;
             } else if (currentPosVolts > N_LOW && currentPosVolts < N_HIGH) {
-                return 2;
+                position = 2;
             } else if (currentPosVolts > LO_LOW && currentPosVolts < LO_HIGH) {
-                return 3;
+                position = 3;
             } else {
-                return -1; // Bad position but in range
+                position = -1; // Bad position but in range
             }
+            
+            // TODO: Might want this in final version? 
+            // if (position >= 0 && position <= 3) {
+            //     output->setMotorPos(position);
+            // }
+            output->setMotorPos(position);
         }
 
         void attemptShift(int desiredPos, int maxAttempts) {
@@ -78,27 +84,27 @@ class Motor {
                 } else {
                     break;
                 }
-                output.setMotorVolts(readPositionVolts());
+                output->setMotorVolts(readPositionVolts());
             }
             endShift();
         }
 
     private:
-        int lastValidPos;
-        int currentPos;
+        int lastValidPos = readEEPROMposition();
+        int currentPos = 0;  // TODO: Can I use the function to intialize this here? Or can I do that in defined init? 
         int desiredPos;
         int brakeState;
         int motorSpeed;
         int motorDirection;
         int singleShiftAttempts;
         unsigned long shiftStart;
-        unsigned long lastMotorSetTime;  // Last time motor speed was updated
+        unsigned long lastMotorSetTime = millis();  // Last time motor speed was updated
         unsigned long shiftTimes;  // TODO: Change this to some sort of list
-        OtherOutputs output;
+        OtherOutputs *output;
 
         void initializeShift() {
             singleShiftAttempts = 0;
-            output.setMotorMessage("Beginning shift attempt");
+            output->setMotorMessage("Beginning shift attempt");
             setBrake(0); 
             delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
@@ -112,9 +118,9 @@ class Motor {
 
             if (getPosition() == desiredPos) {
                 setLastValidPos(desiredPos);
-                output.setMotorMessage("Shift completed successfully");
+                output->setMotorMessage("Shift completed successfully");
                 delay(1000);
-                output.setMotorMessage("");
+                output->setMotorMessage("");
             }
         }
 
@@ -123,13 +129,13 @@ class Motor {
                 stopMotor();
                 if (singleShiftAttempts > maxAttempts) {  // If failed to shift to new position
                     if (lastValidPos >= 0) {
-                        output.setMotorMessage("WARNING: Failed to shift to new position, returning to previous position");
+                        output->setMotorMessage("WARNING: Failed to shift to new position, returning to previous position");
                         int returnPosition = lastValidPos;
                         setLastValidPos(-1);  // Record that the current state is invalid
                         delay(1000);  // Ensure message appears for at least 1s
                         attemptShift(returnPosition, 15);  // Try harder (15x) to return to a valid state
                     } else {  // Already previously failed to get to new position
-                        output.setMotorMessage("ERROR: Failed to return to previous position, not currently in valid state!");
+                        output->setMotorMessage("ERROR: Failed to return to previous position, not currently in valid state!");
                         // TODO: Need to think about how to prevent the shift starting again
                         // IMPORTANT TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         delay(1000);  // Just so that the message at least shows up for 1 second
@@ -151,7 +157,7 @@ class Motor {
          * Read position of mode sensor in Volts
          */
         float readPositionVolts() {
-        return 4.5;  // TODO: Read from some pin
+        return 3.4;  // TODO: Read from some pin
         }
 
         int getPositionLowVolts(int position) {
@@ -277,7 +283,7 @@ class Motor {
             {
                 delay(10);  // TODO: Change this to do other things while waiting? I.e. check switchPosition or update screen?
                 if (shiftReady() == -1 || millis() - waitStart > 30*1000){
-                    output.setMotorMessage("Shift not ready and needs to abort");
+                    output->setMotorMessage("Shift not ready and needs to abort");
                     delay(1000); 
                     return -1;  
                 }

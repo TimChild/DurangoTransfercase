@@ -3,54 +3,82 @@
 #include "output.h"
 #include "specifications.h"
 
+int FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
 class SelectorSwitch {
     private: 
+        int modeSelectPin;
         int lastValidState;
         int currentState;
         float timeEnteredState;
-        OtherOutputs output;
+        OtherOutputs* output;  // Pointer so that it points to the same object everywhere
 
         /**
          * Read position of selector switch
          */ 
         int readSwitchPositionOhms() {
             // Returns resistance of switch
-            return 2000; // TODO: Read Pin and convert to resistance in Ohms
+            float Vin = 5.0;
+            float Vout = 5.0/1024*analogRead(modeSelectPin);
+            int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
+            // Serial.print(String(Vout) + ";" + String(resistance) + "\n\n");
+            
+            output->setMainMessage("Ohms: " + String(resistance)); // DEBUGGING
+
+            return resistance;
         }
 
         int getSwitchPosition() {
             // Returns position as value from 0 -> 3 or -1 if invalid (or -2 if invalid and out of range)
             int ohms = readSwitchPositionOhms();
+            int position;
             if (ohms < SW_SHORTED_HIGH || ohms > SW_OPEN_LOW) {
-                return -2;  // Bad position and out of range
+                position = -2;  // Bad position and out of range
             } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
-                return 0;
+                position = 0;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
-                return 1;
+                position = 1;
             } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW)) && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))) {
-                return 2;
+                position = 2;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
-                return 3;
+                position = 3;
             } else {
-                return -1; // Bad position but in range
+                position = -1; // Bad position but in range
             }
+            Serial.print(String(position) + "\n");
+
+            return position;
         }
 
     public:
         // Initialization
-        SelectorSwitch(OtherOutputs out) {
-            output = out;
-            lastValidState = getSwitchPosition();  // AWD is the default valid option
-            if (lastValidState < 0 || lastValidState > 3) {
-                lastValidState = 1;
-            }
-            currentState = getSwitchPosition();
+        SelectorSwitch(int analogInput) 
+            : modeSelectPin(analogInput)
+            , lastValidState(1)
+            , currentState(-1)
+            {
+                pinMode(analogInput, INPUT);
+            //     if (lastValidState < 0 || lastValidState > 3) {
+            //         lastValidState = 1;  // Default to AWD
+            // }
         }
+
+        void setOutput(OtherOutputs* out) {
+            output = out;
+        }
+
+        // SelectorSwitch(OtherOutputs out) {
+        //     output = out;
+        //     lastValidState = getSwitchPosition();  // AWD is the default valid option
+        //     if (lastValidState < 0 || lastValidState > 3) {
+        //         lastValidState = 1;
+        //     }
+        //     currentState = getSwitchPosition();
+        // }
 
         int getSelection() {
             // Return current selection (last validState after calling check)
-            checkState();  
+            checkState(); 
             return lastValidState;
         }
         
@@ -65,7 +93,7 @@ class SelectorSwitch {
             if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
                 lastValidState = currentState;
             }
-            output.setSwitchPos(lastValidState);
+            output->setSwitchPos(lastValidState);  // TODO: Re enable
         }
 };
 
