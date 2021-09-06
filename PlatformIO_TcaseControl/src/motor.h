@@ -38,80 +38,34 @@ void setEEPROMposition(int pos) {
 }
 
 class Motor {
-    public:
-        void setOutput(OtherOutputs *out) {
-            output = out;
-        }
-
-        int getPosition() {
-            // Check position from motor, if valid update last valid and return, 
-            // otherwise return last valid
-            float currentPosVolts = readPositionVolts();
-
-            Serial.print("Motor-getPosition: currentPosVolts = " + String(currentPosVolts) + "   ");
-            int position;
-            if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
-                position = -2;  // Bad position and out of range
-            } else if (currentPosVolts > LOCK_LOW && currentPosVolts < LOCK_HIGH) {
-                position = 0;
-            } else if (currentPosVolts > AWD_LOW && currentPosVolts < AWD_HIGH) {
-                position = 1;
-            } else if (currentPosVolts > N_LOW && currentPosVolts < N_HIGH) {
-                position = 2;
-            } else if (currentPosVolts > LO_LOW && currentPosVolts < LO_HIGH) {
-                position = 3;
-            } else {
-                position = -1; // Bad position but in range
-            }
-            
-            // TODO: Might want this in final version? 
-            // if (position >= 0 && position <= 3) {
-            //     output->setMotorPos(position);
-            // }
-            output->setMotorPos(position);
-        }
-
-        void attemptShift(int desiredPos, int maxAttempts) {
-            if (waitForShiftReady() < 0) {
-                return;  // Shift not ready and needs to be aborted
-            }
-
-            initializeShift();
-            while (desiredPositionDistance() > 0.05) {
-                addShiftAttempt();
-                if (checkShiftWorking(maxAttempts) > 0) {
-                    stepShiftSpeed(desiredPositionDirection());
-                } else {
-                    break;
-                }
-                output->setMotorVolts(readPositionVolts());
-            }
-            endShift();
-        }
-
     private:
         int lastValidPos = readEEPROMposition();
         int currentPos = 0;  // TODO: Can I use the function to intialize this here? Or can I do that in defined init? 
-        int desiredPos;
-        int brakeState;
-        int motorSpeed;
-        int motorDirection;
-        int singleShiftAttempts;
+        int desiredPos = 1;
+        int brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
+        float motorSpeed = 0;
+        int motorDirection = 0;
+        int singleShiftAttempts = 0;
         unsigned long shiftStart;
         unsigned long lastMotorSetTime = millis();  // Last time motor speed was updated
         unsigned long shiftTimes;  // TODO: Change this to some sort of list
+        int dirPin;
+        int pwmPin;
+        int brakeReleasePin;
+        int modePin;
         OtherOutputs *output;
 
         void initializeShift() {
             singleShiftAttempts = 0;
-            output->setMotorMessage("Beginning shift attempt");
+            // output->setMotorMessage("Beginning shift attempt");
+            output->setMainMessage("Beginning shift attempt");  // DEBUGGING
             setBrake(0); 
             delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
             shiftStart = millis();
         }
 
-        void endShift(){
+        int endShift(){
             stopMotor();
             delay(BRAKE_RELEASE_TIME_S);
             setBrake(1);
@@ -121,7 +75,9 @@ class Motor {
                 output->setMotorMessage("Shift completed successfully");
                 delay(1000);
                 output->setMotorMessage("");
+                return 1;
             }
+            return -1;
         }
 
         int checkShiftWorking(int maxAttempts) {
@@ -157,7 +113,9 @@ class Motor {
          * Read position of mode sensor in Volts
          */
         float readPositionVolts() {
-        return 3.4;  // TODO: Read from some pin
+            float volts = analogRead(modePin)*5.0/1024.0;
+            Serial.println((String)"Motor>readPositionVolts: Reading = "+volts);
+            return volts;
         }
 
         int getPositionLowVolts(int position) {
@@ -194,8 +152,13 @@ class Motor {
         }
 
         void setBrake(int brake) {
-            // TODO: Set brake pin 
-            brakeState = brake;
+            // 0 for brake OFF (Which is actually brakePin high to release brake)
+            // 1 for brake ON (Which is actually brakePin low to leave brake on)
+            if (brake == 0 || brake == 1) {
+                brakeState = brake;
+                Serial.println((String)"Motor>setBrake: Setting brake pin to "+(1-brakeState) + " to achieve brake state " + brakeState);
+                digitalWrite(brakeReleasePin, 1-brakeState);  // (1-X) because the brake is ON by default and HIGH turns it OFF. 
+            }
         }
 
         void stepShiftSpeed(int direction) {
@@ -247,8 +210,16 @@ class Motor {
             // TODO: call the motor controller with motorDirection and motorSpeed
             if (brakeState == 0 && motorSpeed > 0 && (motorDirection == 1 || motorDirection == -1)) {
                 // TODO: Send motor command with motorSpeed and motorDirection
-            } else {
-                // TODO: Stop motor (i.e. set pin outputs)
+                int realDir, realPwm;
+                realDir = (motorDirection > 0) ? 1 : 0;
+                realPwm = max(PWM_MAX_POWER*motorSpeed, PWM_MIN_POWER);
+                Serial.println((String)"Motor>setMotor: Dir = "+realDir+", Speed: "+realPwm);
+                digitalWrite(dirPin, realDir);
+                analogWrite(pwmPin, realPwm);
+            } else { // Stop motor
+                Serial.println((String)"Motor>setMotor: Dir = 0, Speed: 0");
+                digitalWrite(dirPin, 0);
+                digitalWrite(pwmPin, 0);
             }
             lastMotorSetTime = millis();
         }
@@ -290,6 +261,105 @@ class Motor {
             }
             return 1;
         }
+
+    public:
+        Motor(int pwmPin, int dirPin, int brakeReleasePin, int modePin, OtherOutputs* out)
+            : dirPin(dirPin)
+            , pwmPin(pwmPin)
+            , brakeReleasePin(brakeReleasePin)
+            , modePin(modePin)
+            , output(out)
+        {
+            pinMode(this->dirPin, OUTPUT);
+            pinMode(this->pwmPin, OUTPUT);
+            pinMode(this->brakeReleasePin, OUTPUT);
+            pinMode(this->modePin, INPUT);
+            // TODO: Possibly set up some stuff about PWM frequency? But probably doesn't matter
+        }
+
+        int getPosition() {
+            // Check position from motor, if valid update last valid and return, 
+            // otherwise return last valid
+            float currentPosVolts = readPositionVolts();
+
+            Serial.print("Motor-getPosition: currentPosVolts = " + String(currentPosVolts) + "   ");
+            int position;
+            if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
+                position = -2;  // Bad position and out of range
+            } else if (currentPosVolts > LOCK_LOW && currentPosVolts < LOCK_HIGH) {
+                position = 0;
+            } else if (currentPosVolts > AWD_LOW && currentPosVolts < AWD_HIGH) {
+                position = 1;
+            } else if (currentPosVolts > N_LOW && currentPosVolts < N_HIGH) {
+                position = 2;
+            } else if (currentPosVolts > LO_LOW && currentPosVolts < LO_HIGH) {
+                position = 3;
+            } else {
+                position = -1; // Bad position but in range
+            }
+            
+            // TODO: Might want this in final version? 
+            // if (position >= 0 && position <= 3) {
+            //     output->setMotorPos(position);
+            // }
+            output->setMotorPos(position);
+            return position;
+        }
+
+        int attemptShift(int desiredPos, int maxAttempts) {
+            if (waitForShiftReady() < 0) {
+                return -1;  // Shift not ready and needs to be aborted
+            }
+
+            initializeShift();
+            while (desiredPositionDistance() > 0.05) {
+                Serial.println((String)"Motor>attemptShift: desiredPositionDistance = " + desiredPositionDistance());
+                addShiftAttempt();
+                if (checkShiftWorking(maxAttempts) > 0) {
+                    stepShiftSpeed(desiredPositionDirection());
+                } else {
+                    break;
+                }
+                output->setMotorVolts(readPositionVolts());
+            }
+            return endShift();
+        }
+
+        void testBrake(int ms) {
+            setBrake(0);
+            delay(ms);
+            setBrake(1);
+        }
+
+        void testMotorForward(int ms) {
+            output->setMainMessage("Testing Forward");
+            motorDirection = 1;
+            motorSpeed = 0.1;
+            setBrake(0);
+            delay(500);
+            setMotor();
+            delay(ms);
+            stopMotor();
+            delay(500);
+            setBrake(1);
+            output->setMainMessage("");
+        }
+
+        void testMotorBackward(int ms) {
+            output->setMainMessage("Testing Backward");
+            motorDirection = -1;
+            motorSpeed = 0.1;
+            setBrake(0);
+            delay(500);
+            setMotor();
+            delay(ms);
+            stopMotor();
+            delay(500);
+            setBrake(1);
+            output->setMainMessage("");
+        }
+
+
 };
 
 

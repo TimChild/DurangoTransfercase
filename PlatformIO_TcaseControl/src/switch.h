@@ -52,29 +52,17 @@ class SelectorSwitch {
 
     public:
         // Initialization
-        SelectorSwitch(int analogInput) 
+        SelectorSwitch(int analogInput, OtherOutputs* out) 
             : modeSelectPin(analogInput)
             , lastValidState(1)
             , currentState(-1)
+            , output(out)
             {
                 pinMode(analogInput, INPUT);
             //     if (lastValidState < 0 || lastValidState > 3) {
             //         lastValidState = 1;  // Default to AWD
             // }
         }
-
-        void setOutput(OtherOutputs* out) {
-            output = out;
-        }
-
-        // SelectorSwitch(OtherOutputs out) {
-        //     output = out;
-        //     lastValidState = getSwitchPosition();  // AWD is the default valid option
-        //     if (lastValidState < 0 || lastValidState > 3) {
-        //         lastValidState = 1;
-        //     }
-        //     currentState = getSwitchPosition();
-        // }
 
         int getSelection() {
             // Return current selection (last validState after calling check)
