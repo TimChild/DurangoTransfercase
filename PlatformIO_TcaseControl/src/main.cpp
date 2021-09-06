@@ -25,7 +25,7 @@ int desiredPosition = 1;
  * Runs once at Arduino Startup
 */
 void setup() {
-  Serial.begin(9600); // DEBUGGING
+  Serial.begin(115200); // DEBUGGING
 
   snprintf(buffer, sizeof(buffer), "Main: Booting"); Serial.println(buffer);  // DEBUGGING
 
@@ -52,15 +52,17 @@ void loop() {
   snprintf(buffer, sizeof(buffer), "Main: desiredPosition = %i", desiredPosition); Serial.println(buffer);  // DEBUGGING
   currentPosition = motor.getPosition();
   snprintf(buffer, sizeof(buffer), "Main: currentPosition = %i", currentPosition); Serial.println(buffer);  // DEBUGGING
-  // if (currentPosition != desiredPosition) {
-  //   motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-  //   if (motor.getPosition() != desiredPosition) {
-  //     // TODO: Think about what to do here if either shift failed, or potentially in bad state?
-  //   }
-  // }
+  if (currentPosition != desiredPosition) {
+    // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
+    motor.attemptShift(desiredPosition, 1);
+    if (motor.getPosition() != desiredPosition) {
+      // TODO: Think about what to do here if either shift failed, or potentially in bad state?
+      Serial.println(F("Main: Failed to reach position"));
+    }
+  }
   // selector.checkState();
 
-  delay(20000); // DEBUGGING
+  delay(5000); // DEBUGGING
 
   // motor.testBrake(1000);
   // delay(1000);

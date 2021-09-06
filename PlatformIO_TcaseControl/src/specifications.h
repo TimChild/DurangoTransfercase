@@ -35,7 +35,8 @@ float HIGH_LIMIT = 4.51;
 // TODO: Note to self, shifting from 4LO to AWD first shifts from 4LO to 4HIGH then back to AWD
 
 // Shift parameters
-float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
+// float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
+float MAX_SHIFT_TIME_S = 3.0;  // Max time to try shifting per position change
 int MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before shifting back
 float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
 float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
@@ -59,9 +60,9 @@ float CHECK_INTERVAL_S = 2.0; // Time between checks of Drift
 
 
 // PWM parameters
-int PWM_FREQUENCY = 100; // 100Hz PWM Frequency
-float PWM_ACCELERATION = 0.05; // Not specified in manual (only says "specified rate"):
-                              // % increase of duty per cycle
+int PWM_FREQUENCY = 490; // FCM uses 100Hz PWM Frequency but Arduino uses 490Hz by default (not worth changing)
+float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "specified rate"):
+                           // increase of duty cycle per second (i.e. duty = 1.0 is MAX so 2.0 means 0 -> MAX in 0.5s)
 
 // Not specified in manual (says "specified rate based upon difference between desired position and current position")
 // TODO: This values need to be figured out!
