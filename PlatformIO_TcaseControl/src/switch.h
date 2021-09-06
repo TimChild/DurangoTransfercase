@@ -3,6 +3,8 @@
 #include "output.h"
 #include "specifications.h"
 
+char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
+
 int FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
 class SelectorSwitch {
@@ -21,7 +23,6 @@ class SelectorSwitch {
             float Vin = 5.0;
             float Vout = 5.0/1024*analogRead(modeSelectPin);
             int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
-            // Serial.print(String(Vout) + ";" + String(resistance) + "\n\n");
             
             output->setMainMessage("Ohms: " + String(resistance)); // DEBUGGING
 
@@ -45,7 +46,7 @@ class SelectorSwitch {
             } else {
                 position = -1; // Bad position but in range
             }
-            Serial.print(String(position) + "\n");
+            snprintf(sw_buf, sizeof(sw_buf), "Switch>getSwitchPosition: position = %i", position); Serial.println(sw_buf);  // DEBUGGING
 
             return position;
         }

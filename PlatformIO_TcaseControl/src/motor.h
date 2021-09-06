@@ -282,7 +282,7 @@ class Motor {
             // otherwise return last valid
             float currentPosVolts = readPositionVolts();
 
-            Serial.print("Motor-getPosition: currentPosVolts = " + String(currentPosVolts) + "   ");
+            Serial.print("Motor>getPosition: currentPosVolts = "); Serial.println(currentPosVolts);
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range

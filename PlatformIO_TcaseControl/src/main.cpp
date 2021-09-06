@@ -4,6 +4,8 @@
 #include "switch.h"
 #include "output.h"
 
+char buffer[100];  // DEBUGGING: String buffer for serial prints to avoid using String
+
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; //TODO: sort out these pins
 const int switchModePin = A0;
 const int motorPWMpin = 9;
@@ -18,25 +20,22 @@ Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &ou
 int currentPosition = -1;  // Current position of Motor
 int desiredPosition = 1;
   
+
 /**
  * Runs once at Arduino Startup
 */
 void setup() {
-  Serial.begin(9600);
-  Serial.print("Hello World");
+  Serial.begin(9600); // DEBUGGING
 
+  snprintf(buffer, sizeof(buffer), "Main: Booting"); Serial.println(buffer);  // DEBUGGING
 
   output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
-  output.setMainMessage("Running Setup");
+  output.setMainMessage("Booting");
 
   // selector.setOutput(&output);  // Pass the address of output so that it is the same object everywhere
   // motor.setOutput(&output);
 
   delay(500);
-
-  output.setMainMessage("Done");
-  delay(500);
-
   output.setMainMessage("");
 }
 
@@ -46,18 +45,22 @@ void setup() {
  */
 void loop() {
   // motor.testMotorBackward(1000);
+  snprintf(buffer, sizeof(buffer), "Main: Starting Loop"); Serial.println(buffer);  // DEBUGGING
+  
   selector.checkState();
   desiredPosition = selector.getSelection();
+  snprintf(buffer, sizeof(buffer), "Main: desiredPosition = %i", desiredPosition); Serial.println(buffer);  // DEBUGGING
   currentPosition = motor.getPosition();
-  if (currentPosition != desiredPosition) {
-    motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-    if (motor.getPosition() != desiredPosition) {
-      // TODO: Think about what to do here if either shift failed, or potentially in bad state?
-    }
-  }
-  selector.checkState();
+  snprintf(buffer, sizeof(buffer), "Main: currentPosition = %i", currentPosition); Serial.println(buffer);  // DEBUGGING
+  // if (currentPosition != desiredPosition) {
+  //   motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
+  //   if (motor.getPosition() != desiredPosition) {
+  //     // TODO: Think about what to do here if either shift failed, or potentially in bad state?
+  //   }
+  // }
+  // selector.checkState();
 
-  delay(1000); // DEBUGGING
+  delay(20000); // DEBUGGING
 
   // motor.testBrake(1000);
   // delay(1000);
