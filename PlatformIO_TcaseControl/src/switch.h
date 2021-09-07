@@ -38,7 +38,8 @@ class SelectorSwitch {
             } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
                 position = 0;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
-                position = 1;
+                // position = 1;
+                position = 3; // Testing
             } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW)) && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))) {
                 position = 2;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
@@ -60,9 +61,13 @@ class SelectorSwitch {
             , output(out)
             {
                 pinMode(analogInput, INPUT);
-            //     if (lastValidState < 0 || lastValidState > 3) {
-            //         lastValidState = 1;  // Default to AWD
-            // }
+                // lastValidState = (getSwitchPosition() >= 0) ? getSwitchPosition() : 1;
+        }
+
+        void setup() {
+            checkState();
+            delay(SW_DEBOUNCE_S*1000 + 50);
+            checkState();
         }
 
         int getSelection() {

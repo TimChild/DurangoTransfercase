@@ -43,7 +43,6 @@ class Motor {
     private:
         int lastValidPos = readEEPROMposition();
         int currentPos = 0;  // TODO: Can I use the function to intialize this here? Or can I do that in defined init? 
-        int desiredPos = 1;
         int brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
         float motorSpeed = 0.0; // 0.0 - 1.0
         int motorDirection = 0;
@@ -61,21 +60,24 @@ class Motor {
             singleShiftAttempts = 0;
             // output->setMotorMessage("Beginning shift attempt");
             output->setMainMessage("Initializing Shift");  // DEBUGGING
-            Serial.println("Motor>initializeShift: Initializing Shift");  // DEBUGGING
+            // Serial.println("Motor>initializeShift: Initializing Shift");  // DEBUGGING
             setBrake(0); 
             delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
             shiftStart = millis();
+            output->setMainMessage("");  // DEBUGGING
         }
 
-        int endShift(){
+        int endShift(int desiredPos){
+            Serial.println("Motor>endShift: Shift ending");
             stopMotor();
             delay(BRAKE_RELEASE_TIME_S);
             setBrake(1);
 
             if (getPosition() == desiredPos) {
                 setLastValidPos(desiredPos);
-                output->setMotorMessage("Shift completed successfully");
+                // output->setMotorMessage("Shift completed successfully");
+                output->setMainMessage("Shift completed successfully");
                 delay(1000);
                 output->setMotorMessage("");
                 return 1;
@@ -127,7 +129,7 @@ class Motor {
             return volts;
         }
 
-        int getPositionLowVolts(int position) {
+        float getPositionLowVolts(int position) {
             // Return low voltage of position
             switch (position){
                 case 0: return LOCK_LOW;
@@ -139,7 +141,7 @@ class Motor {
 
         }
 
-        int getPositionHighVolts(int position) {
+        float getPositionHighVolts(int position) {
             // Return high voltage of position
             switch (position){
                 case 0: return LOCK_HIGH;
@@ -170,7 +172,7 @@ class Motor {
             }
         }
 
-        void stepShiftSpeed(int direction) {
+        void stepShiftSpeed(int direction, int desiredPos) {
             // Update motor power based on current state.
             // increase power if not at max and not close to desired pos
             // decrease power if close to desired pos
@@ -188,32 +190,58 @@ class Motor {
                 }
                 motorDirection = direction;
 
-                if (desiredPositionDistance() >= 0.2 || motorSpeed < 0.01) {
-                    if (motorSpeed < 1.0) {
-                        Serial.println(F("Motor>stepShiftSpeed: Increasing motor speed"));
-                        changeSpeedValue(1, timeSinceLastSet);
-                        setMotor();
-                    }
-                } else if (motorSpeed > 0.01) { // otherwise decellerate
-                    Serial.println(F("Motor>stepShiftSpeed: Decreasing motor speed"));
-                    changeSpeedValue(-1, timeSinceLastSet); 
-                    setMotor();
-                } 
+                updateMotorSpeed(desiredPos, timeSinceLastSet);
+
+                // if (desiredPositionDistance(desiredPos) >= 0.5 || motorSpeed < 0.01) {
+                //     if (motorSpeed < 1.0) {
+                //         Serial.println(F("Motor>stepShiftSpeed: Increasing motor speed"));
+                //         changeSpeedValue(1, timeSinceLastSet);
+                //         setMotor();
+                //     }
+                // } else if (motorSpeed > 0.01) { // otherwise decellerate
+                //     Serial.println(F("Motor>stepShiftSpeed: Decreasing motor speed"));
+                //     changeSpeedValue(-1, timeSinceLastSet); 
+                //     setMotor();
+                // } 
             }
         }
 
-        void changeSpeedValue(int increase, float timeElapsed) {  
-            // Change power output (always positive value)
-            float newSpeed = 0.0;
-            if (increase > 0) {
-                newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
-            } 
-            if (increase < 0) { // i.e. decrese power
-                newSpeed = max(0.0, motorSpeed - min(1.0, PWM_ACCELERATION * timeElapsed));
+        void updateMotorSpeed(int desiredPos, float timeElapsed) {
+            float posDist = desiredPositionDistance(desiredPos);
+            float maxAllowedSpeed;
+            if (posDist > 0.5) {
+                maxAllowedSpeed = 1.0;
+            } else if (posDist > 0.4) {
+                maxAllowedSpeed = 0.5;
+            } else if (posDist > 0.3) {
+                maxAllowedSpeed = 0.3;
+            } else if (posDist > 0.1) {
+                maxAllowedSpeed = 0.1;
+            } else {
+                maxAllowedSpeed = 0.01;  // I.e. min speed
             }
-            motorSpeed = newSpeed;
-            Serial.print(F("Motor>changeSpeedValue: newSpeed = ")); Serial.println(newSpeed);
+
+            float newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
+            newSpeed = min(maxAllowedSpeed, newSpeed);
+            if (abs(newSpeed - motorSpeed) > 0.01) {
+                motorSpeed = newSpeed;
+                Serial.print(F("Motor>updateMotorSpeed: newSpeed = ")); Serial.println(newSpeed);
+                setMotor();
+            }
         }
+
+        // void changeSpeedValue(int increase, float timeElapsed) {  
+        //     // Change power output (always positive value)
+        //     float newSpeed = 0.0;
+        //     if (increase > 0) {
+        //         newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
+        //     } 
+        //     if (increase < 0) { // i.e. decrese power
+        //         newSpeed = max(0.01, motorSpeed - min(1.0, PWM_ACCELERATION*3 * timeElapsed));  // Never sets exactly ZERO speed
+        //     }
+        //     motorSpeed = newSpeed;
+        //     Serial.print(F("Motor>changeSpeedValue: newSpeed = ")); Serial.println(newSpeed);
+        // }
 
         void stopMotor() {
             motorSpeed = 0.0;
@@ -238,7 +266,7 @@ class Motor {
             lastMotorSetTime = millis();
         }
 
-        float desiredPositionDistance() {
+        float desiredPositionDistance(int desiredPos) {
             // Return distance to desired position
             float currentPosVolts = readPositionVolts();
             float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
@@ -248,11 +276,11 @@ class Motor {
             //     return 0.0;  // Return zero distance if reading is out of range (to prevent trying to shift somewhere with a bad reading)
             // }
 
-            Serial.print(F("Motor>desiredPositionDistance: "));Serial.println(abs(currentPosVolts-desiredPosVolts));  // DEBUGGING
+            // Serial.print(F("Motor>desiredPositionDistance: "));Serial.println(abs(currentPosVolts-desiredPosVolts));  // DEBUGGING
             return min(1.0, abs(currentPosVolts - desiredPosVolts));
         }
 
-        int desiredPositionDirection() {
+        int desiredPositionDirection(int desiredPos) {
             // Return direction of desired position from current position
             float currentPosVolts = readPositionVolts();
             float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
@@ -337,18 +365,19 @@ class Motor {
             }
 
             initializeShift();
-            while (desiredPositionDistance() > 0.05) {
-                Serial.print(F("Motor>attemptShift: desiredPositionDistance = "));Serial.println((double)desiredPositionDistance());
+            Serial.print(F("Motor>attemptShift: desiredPositionDistance() = ")); Serial.println(desiredPositionDistance(desiredPos));
+            while (desiredPositionDistance(desiredPos) > 0.01) {
+                Serial.print(F("Motor>attemptShift: desiredPositionDistance = "));Serial.println((double)desiredPositionDistance(desiredPos));
                 addShiftAttempt();
                 if (checkShiftWorking(maxAttempts) > 0) {
-                    stepShiftSpeed(desiredPositionDirection());
+                    stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
                 } else {
                     break;
                 }
                 output->setMotorVolts(readPositionVolts());
                 Serial.println("");
             }
-            return endShift();
+            return endShift(desiredPos);
         }
 
         void testBrake(int ms) {

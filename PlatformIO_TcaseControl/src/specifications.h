@@ -66,10 +66,10 @@ float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "specified r
 
 // Not specified in manual (says "specified rate based upon difference between desired position and current position")
 // TODO: This values need to be figured out!
-float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
+// float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
-int PWM_MAX_POWER = 100; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
-int PWM_MIN_POWER = 10; // Not specified in manual - probably need some minimum power to actually make motor move
+int PWM_MAX_POWER = 200; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
+int PWM_MIN_POWER = 15; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift motor braking parameters (apply 12V to both shift motor wires)
 int STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO

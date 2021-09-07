@@ -32,10 +32,10 @@ void setup() {
   output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
   output.setMainMessage("Booting");
 
+  selector.setup();
+
   // selector.setOutput(&output);  // Pass the address of output so that it is the same object everywhere
   // motor.setOutput(&output);
-
-  delay(500);
   output.setMainMessage("");
 }
 
@@ -46,12 +46,12 @@ void setup() {
 void loop() {
   // motor.testMotorBackward(1000);
   snprintf(buffer, sizeof(buffer), "Main: Starting Loop"); Serial.println(buffer);  // DEBUGGING
-  
-  selector.checkState();
+
+  selector.checkState(); // This should run frequently to check current switch position
+
   desiredPosition = selector.getSelection();
-  snprintf(buffer, sizeof(buffer), "Main: desiredPosition = %i", desiredPosition); Serial.println(buffer);  // DEBUGGING
   currentPosition = motor.getPosition();
-  snprintf(buffer, sizeof(buffer), "Main: currentPosition = %i", currentPosition); Serial.println(buffer);  // DEBUGGING
+  snprintf(buffer, sizeof(buffer), "Main: desiredPosition = %i, currentPosition = %i", desiredPosition, currentPosition); Serial.println(buffer);  // DEBUGGING
   if (currentPosition != desiredPosition) {
     // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
     motor.attemptShift(desiredPosition, 1);
@@ -62,7 +62,7 @@ void loop() {
   }
   // selector.checkState();
 
-  delay(5000); // DEBUGGING
+  // delay(5000); // DEBUGGING
 
   // motor.testBrake(1000);
   // delay(1000);
