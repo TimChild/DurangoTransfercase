@@ -9,10 +9,10 @@ int FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode se
 
 class SelectorSwitch {
     private: 
-        int modeSelectPin;
-        int lastValidState;
+        byte modeSelectPin;
+        byte lastValidState;
         int currentState;
-        float timeEnteredState;
+        unsigned long timeEnteredState;
         OtherOutputs* output;  // Pointer so that it points to the same object everywhere
 
         /**
@@ -23,9 +23,7 @@ class SelectorSwitch {
             float Vin = 5.0;
             float Vout = 5.0/1024*analogRead(modeSelectPin);
             int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
-            
-            output->setMainMessage("Ohms: " + String(resistance)); // DEBUGGING
-
+            output->setSwitchResistance(resistance); 
             return resistance;
         }
 
@@ -38,8 +36,7 @@ class SelectorSwitch {
             } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
                 position = 0;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
-                // position = 1;
-                position = 3; // Testing
+                position = 1;
             } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW)) && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))) {
                 position = 2;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {

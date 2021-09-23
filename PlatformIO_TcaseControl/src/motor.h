@@ -41,26 +41,27 @@ void setEEPROMposition(int pos) {
 
 class Motor {
     private:
-        int lastValidPos = readEEPROMposition();
+        byte lastValidPos = readEEPROMposition();
         int currentPos = 0;  // TODO: Can I use the function to intialize this here? Or can I do that in defined init? 
-        int brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
+        byte brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
         float motorSpeed = 0.0; // 0.0 - 1.0
         int motorDirection = 0;
         int singleShiftAttempts = 0;
         unsigned long shiftStart;
         unsigned long lastMotorSetTime = millis();  // Last time motor speed was updated
         unsigned long shiftTimes;  // TODO: Change this to some sort of list
-        int dirPin;
-        int pwmPin;
-        int brakeReleasePin;
-        int modePin;
+        byte dirPin;
+        byte pwmPin;
+        byte brakeReleasePin;
+        byte modePin;
         OtherOutputs *output;
 
         void initializeShift() {
-            singleShiftAttempts = 0;
             // output->setMotorMessage("Beginning shift attempt");
-            output->setMainMessage("Initializing Shift");  // DEBUGGING
+            output->setMainMessage(F("Initializing Shift"));  // DEBUGGING
             // Serial.println("Motor>initializeShift: Initializing Shift");  // DEBUGGING
+
+            singleShiftAttempts = 0;
             setBrake(0); 
             delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
@@ -69,17 +70,18 @@ class Motor {
         }
 
         int endShift(int desiredPos){
-            Serial.println("Motor>endShift: Shift ending");
+            Serial.println(F("Motor>endShift: Shift ending"));
+
             stopMotor();
             delay(BRAKE_RELEASE_TIME_S);
             setBrake(1);
-
             if (getPosition() == desiredPos) {
                 setLastValidPos(desiredPos);
                 // output->setMotorMessage("Shift completed successfully");
-                output->setMainMessage("Shift completed successfully");
+                output->setMainMessage(F("Shift completed successfully"));
                 delay(1000);
-                output->setMotorMessage("");
+                // output->setMotorMessage("");
+                output->setMainMessage("");
                 return 1;
             }
             return -1;
@@ -100,7 +102,7 @@ class Motor {
                         // attemptShift(returnPosition, 15);  // Try harder (15x) to return to a valid state
                         attemptShift(returnPosition, 1);  //  DEBUGGING: Reduced attemts to return to previous position
                     } else {  // Already previously failed to get to new position
-                        output->setMotorMessage(F("ERROR: Failed to return to previous position, not currently in valid state!"));
+                        output->setMotorMessage("ERROR: Failed to return to previous position, not currently in valid state!");
                         Serial.println(F("Motor>checkShiftWorking: Failed to return to previous position, not currently in valid state!"));  // DEBUGGING
                         // TODO: Need to think about how to prevent the shift starting again
                         // IMPORTANT TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -223,7 +225,7 @@ class Motor {
 
             float newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
             newSpeed = min(maxAllowedSpeed, newSpeed);
-            if (abs(newSpeed - motorSpeed) > 0.01) {
+            if (abs(newSpeed - motorSpeed) > 0.0001) {
                 motorSpeed = newSpeed;
                 Serial.print(F("Motor>updateMotorSpeed: newSpeed = ")); Serial.println(newSpeed);
                 setMotor();
@@ -387,7 +389,7 @@ class Motor {
         }
 
         void testMotorForward(int ms) {
-            output->setMainMessage("Testing Forward");
+            output->setMainMessage(F("Testing Forward"));
             motorDirection = 1;
             motorSpeed = 0.1;
             setBrake(0);
@@ -401,7 +403,7 @@ class Motor {
         }
 
         void testMotorBackward(int ms) {
-            output->setMainMessage("Testing Backward");
+            output->setMainMessage(F("Testing Backward"));
             motorDirection = -1;
             motorSpeed = 0.1;
             setBrake(0);

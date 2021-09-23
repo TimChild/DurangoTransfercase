@@ -1,39 +1,69 @@
 #include <Arduino.h>
+#include <SPI.h>
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
 #include "specifications.h"
 #include "motor.h"
 #include "switch.h"
 #include "output.h"
 
-char buffer[100];  // DEBUGGING: String buffer for serial prints to avoid using String
 
-const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; //TODO: sort out these pins
-const int switchModePin = A0;
-const int motorPWMpin = 9;
-const int motorDirPin = 8;
-const int brakeReleasePin = 7;
-const int motorModePin = A1;
+// const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; // For LCD
+// const byte switchModePin = A0;
+// const byte motorPWMpin = 9;
+// const byte motorDirPin = 8;
+// const byte brakeReleasePin = 7;
+// const byte motorModePin = A1;
 
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+const byte TFT_CS = 10, TFT_DC = 9, TFT_RST = 8; // For TFT
+
+
+const uint8_t switchModePin = A0;
+const byte motorPWMpin = 3;
+const byte motorDirPin = 2;
+const byte brakeReleasePin = 4;
+const uint8_t motorModePin = A1;
+
+// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
+// OtherOutputs output = OtherOutputs(&tft);
 OtherOutputs output = OtherOutputs();
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
 int currentPosition = -1;  // Current position of Motor
-int desiredPosition = 1;
+byte desiredPosition = 1;
   
+
+void bootTest() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  for (byte i = 0; i < 15; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(50);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(50);
+  }
+
+  
+}
+
 
 /**
  * Runs once at Arduino Startup
 */
 void setup() {
+  SPI.begin();
+  bootTest();
+  output.setTFT(&tft);
   Serial.begin(115200); // DEBUGGING
 
-  snprintf(buffer, sizeof(buffer), "Main: Booting"); Serial.println(buffer);  // DEBUGGING
+  Serial.println(F("Main: Booting"));
 
-  output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
-  output.setMainMessage("Booting");
+  // output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
+  output.setMainMessage(F("Booting"));
 
   selector.setup();
-
   // selector.setOutput(&output);  // Pass the address of output so that it is the same object everywhere
   // motor.setOutput(&output);
   output.setMainMessage("");
@@ -44,14 +74,16 @@ void setup() {
  * Runs repeatedly after Arduino setup()
  */
 void loop() {
-  // motor.testMotorBackward(1000);
-  snprintf(buffer, sizeof(buffer), "Main: Starting Loop"); Serial.println(buffer);  // DEBUGGING
+  // bootTest();
+  Serial.println(F("Main: Starting Loop"));  // Debugging
 
   selector.checkState(); // This should run frequently to check current switch position
-
   desiredPosition = selector.getSelection();
   currentPosition = motor.getPosition();
-  snprintf(buffer, sizeof(buffer), "Main: desiredPosition = %i, currentPosition = %i", desiredPosition, currentPosition); Serial.println(buffer);  // DEBUGGING
+
+  Serial.println(desiredPosition);
+  Serial.println(currentPosition);
+
   if (currentPosition != desiredPosition) {
     // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
     motor.attemptShift(desiredPosition, 1);
@@ -60,10 +92,11 @@ void loop() {
       Serial.println(F("Main: Failed to reach position"));
     }
   }
-  // selector.checkState();
+  selector.checkState();
 
   // delay(5000); // DEBUGGING
 
+  // motor.testMotorBackward(1000);
   // motor.testBrake(1000);
   // delay(1000);
   // motor.testMotorForward(1000);
