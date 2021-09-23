@@ -8,6 +8,15 @@
 #include "switch.h"
 #include "output.h"
 
+// #define DEBUG
+
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
+#endif
 
 // const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; // For LCD
 // const byte switchModePin = A0;
@@ -56,9 +65,11 @@ void setup() {
   SPI.begin();
   bootTest();
   output.setTFT(&tft);
-  Serial.begin(115200); // DEBUGGING
+  #ifdef DEBUG
+    Serial.begin(115200); // DEBUGGING
+  #endif
 
-  Serial.println(F("Main: Booting"));
+  DEBUG_PRINTLN(F("Main: Booting"));
 
   // output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
   output.setMainMessage(F("Booting"));
@@ -75,21 +86,21 @@ void setup() {
  */
 void loop() {
   // bootTest();
-  Serial.println(F("Main: Starting Loop"));  // Debugging
+  DEBUG_PRINTLN(F("Main: Starting Loop"));  // Debugging
 
   selector.checkState(); // This should run frequently to check current switch position
   desiredPosition = selector.getSelection();
   currentPosition = motor.getPosition();
 
-  Serial.println(desiredPosition);
-  Serial.println(currentPosition);
+  DEBUG_PRINTLN(desiredPosition);
+  DEBUG_PRINTLN(currentPosition);
 
   if (currentPosition != desiredPosition) {
     // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
     motor.attemptShift(desiredPosition, 1);
     if (motor.getPosition() != desiredPosition) {
       // TODO: Think about what to do here if either shift failed, or potentially in bad state?
-      Serial.println(F("Main: Failed to reach position"));
+      DEBUG_PRINTLN(F("Main: Failed to reach position"));
     }
   }
   selector.checkState();

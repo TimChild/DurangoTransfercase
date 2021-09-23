@@ -4,6 +4,13 @@
 #include <LiquidCrystal.h>
 #include <Adafruit_ST7735.h>
 
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
+#endif
 
 String makeStringFixedLen(String str, int len) {
     // Returns a string with a spaces added to reach len
@@ -63,7 +70,7 @@ class OtherOutputs {
             // padString(displayText, 16);
             // screen->setCursor(0,1);
             // screen->print(displayText);
-            delay(100);
+            delay(50);
         }
 
         void writeMode1() {

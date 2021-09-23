@@ -3,6 +3,14 @@
 #include "output.h"
 #include "specifications.h"
 
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
+#endif
+
 char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
 
 int FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
@@ -44,7 +52,7 @@ class SelectorSwitch {
             } else {
                 position = -1; // Bad position but in range
             }
-            snprintf(sw_buf, sizeof(sw_buf), "Switch>getSwitchPosition: position = %i", position); Serial.println(sw_buf);  // DEBUGGING
+            snprintf(sw_buf, sizeof(sw_buf), "Switch>getSwitchPosition: position = %i", position); DEBUG_PRINTLN(sw_buf);  // DEBUGGING
 
             return position;
         }
