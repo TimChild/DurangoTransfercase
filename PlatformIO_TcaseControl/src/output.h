@@ -21,11 +21,16 @@ String makeStringFixedLen(String str, int len) {
     return str;
 }
 
-void padString(char* str, int len) {
+void copystr(char *dest, const char *source, int len) {
+    strncpy(dest, source, len);
+    dest[len] = '\0';  // In case source did not fully copy, it is necessary to add termination character
+}
+
+void padString(char* str, int len) {  
     // Returns a string with spaces added to reach len
     // Note: This has no checks about the memory size allocated to str, so it had better be long enough! 
     int slen = strlen(str); // Get length of current string up to but not including null character
-    memset(str+slen, ' ', len-slen-1);  // Set spaces for the rest of the string up to len
+    memset(str+slen, ' ', len-slen);  // Set spaces for the rest of the string up to len
     str[len] = '\0'; // Rewrite the null character at the end to make it a valid string
 }
 
@@ -58,25 +63,32 @@ class OtherOutputs {
 
         void writeMode0() {
             // Main messages in top, selection as text for switch and motor in bottom
-            delay(100);
-            char displayText[17];
-            strncpy(displayText, mainMessage, 16);
-            padString(displayText, 16);
+            // delay(100);
+            // char displayText[17];
+            char displayText[50];  // TODO: Something wrong with using 17 chars, looks like the \0 is being overwritten or soemthing
+            copystr(displayText, mainMessage, 16);
+            padString(displayText, 16);  
 
             screen->setCursor(0,0);
             screen->print(displayText);
             
-            // snprintf(displayText, 16, "%d  %d", switchPos, motorPos);
-            // padString(displayText, 16);
-            // screen->setCursor(0,1);
-            // screen->print(displayText);
+            snprintf(displayText, 16, "%d  %d", switchPos, motorPos);
+            padString(displayText, 16);
+            screen->setCursor(0,1);
+            Serial.println(F("Screen outputting:"));
+            Serial.println(displayText);
+            screen->print(displayText);
             delay(50);
+            snprintf(displayText, 16, "bla_bloop_blop_");
+            Serial.println(F("Screen outputting:"));
+            Serial.println(displayText);
+            screen->print(displayText);
         }
 
         void writeMode1() {
             // Main messages in top, resistance in ohms and position in volts of motor in bottom
             char displayText[17];
-            strncpy(displayText, mainMessage, 16);
+            copystr(displayText, mainMessage, 16);
             padString(displayText, 16);
             
             screen->setCursor(0,0);
@@ -134,13 +146,14 @@ class OtherOutputs {
         }
 
         void setMainMessage (const char *message) {
-            strncpy(mainMessage, message, 16);
+            copystr(mainMessage, message, 16);
             writeOutputs();
         }
 
         void setMainMessage (const __FlashStringHelper *message) {
             // const char *buffer = (const char PROGMEM *)message;
             strncpy_P(mainMessage, (const char*)message, 16);
+            mainMessage[16] = '\0'; // Ensurue the string terminates
             writeOutputs();
         }
 
@@ -169,12 +182,13 @@ class OtherOutputs {
         }
 
         void setMotorMessage(const char *message) {
-            strncpy(motorMessage, message, 16);
+            copystr(motorMessage, message, 16);
             writeOutputs();
         }
 
         void setMotorMessage(const __FlashStringHelper *message) {
             strncpy_P(motorMessage, (const char*)message, 16);
+            motorMessage[16] = '\0'; // Ensure string terminates
             writeOutputs();
         }
 };

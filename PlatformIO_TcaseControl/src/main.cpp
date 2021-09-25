@@ -8,7 +8,7 @@
 #include "switch.h"
 #include "output.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
   #define DEBUG_PRINTLN(x) Serial.println(x)
