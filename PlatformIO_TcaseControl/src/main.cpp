@@ -37,8 +37,8 @@ const uint8_t motorModePin = A1;
 // LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
-// OtherOutputs output = OtherOutputs(&tft);
-OtherOutputs output = OtherOutputs();
+OtherOutputs output = OtherOutputs(&tft);
+// OtherOutputs output = OtherOutputs();
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
 int currentPosition = -1;  // Current position of Motor
@@ -64,7 +64,8 @@ void bootTest() {
 void setup() {
   SPI.begin();
   bootTest();
-  output.setTFT(&tft);
+  // output.setTFT(&tft);
+  output.begin();
   #ifdef DEBUG
     Serial.begin(115200); // DEBUGGING
   #endif
