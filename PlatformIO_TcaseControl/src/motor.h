@@ -4,12 +4,14 @@
 #include "specifications.h"
 #include <EEPROM.h>
 
-#ifdef DEBUG
-  #define DEBUG_PRINTLN(x) Serial.println(x)
-  #define DEBUG_PRINT(x) Serial.print(x)
-#else
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINT(x)
+#ifndef DEBUG_PRINTLN
+  #ifdef DEBUG
+    #define DEBUG_PRINTLN(x) Serial.println(x)
+    #define DEBUG_PRINT(x) Serial.print(x)
+  #else
+    #define DEBUG_PRINTLN(x)
+    #define DEBUG_PRINT(x)
+  #endif
 #endif
 char m_buf[100];  // DEBUGGING: string buffer to avoid use of String
 
@@ -31,7 +33,6 @@ int readEEPROMposition() {
             break;
         }
     }
-    // return -3;  // Shoud not reach this
 }
 
 void setEEPROMposition(int pos) {
@@ -48,15 +49,14 @@ void setEEPROMposition(int pos) {
 
 class Motor {
     private:
-        byte lastValidPos = readEEPROMposition();
-        int currentPos = 0;  // TODO: Can I use the function to intialize this here? Or can I do that in defined init? 
+        byte lastValidPos = 5; // Properly set in .begin()
+        int currentPos = 5;  // Properly set in .begin() 
         byte brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
         float motorSpeed = 0.0; // 0.0 - 1.0
-        int motorDirection = 0;
-        int singleShiftAttempts = 0;
+        int motorDirection = 0;  // -1, 0, 1 (0 for not moving)
+        int singleShiftAttempts = 0;  
         unsigned long shiftStart;
         unsigned long lastMotorSetTime = millis();  // Last time motor speed was updated
-        unsigned long shiftTimes;  // TODO: Change this to some sort of list
         byte dirPin;
         byte pwmPin;
         byte brakeReleasePin;
@@ -64,9 +64,8 @@ class Motor {
         OtherOutputs *output;
 
         void initializeShift() {
-            // output->setMotorMessage("Beginning shift attempt");
             output->setMainMessage(F("Initializing Shift"));  // DEBUGGING
-            // DEBUG_PRINTLN("Motor>initializeShift: Initializing Shift");  // DEBUGGING
+            DEBUG_PRINTLN("Motor>initializeShift: Initializing Shift");  // DEBUGGING
 
             singleShiftAttempts = 0;
             setBrake(0); 
@@ -84,10 +83,8 @@ class Motor {
             setBrake(1);
             if (getPosition() == desiredPos) {
                 setLastValidPos(desiredPos);
-                // output->setMotorMessage("Shift completed successfully");
                 output->setMainMessage(F("Shift completed successfully"));
                 delay(1000);
-                // output->setMotorMessage("");
                 output->setMainMessage("");
                 return 1;
             }
@@ -200,18 +197,6 @@ class Motor {
                 motorDirection = direction;
 
                 updateMotorSpeed(desiredPos, timeSinceLastSet);
-
-                // if (desiredPositionDistance(desiredPos) >= 0.5 || motorSpeed < 0.01) {
-                //     if (motorSpeed < 1.0) {
-                //         DEBUG_PRINTLN(F("Motor>stepShiftSpeed: Increasing motor speed"));
-                //         changeSpeedValue(1, timeSinceLastSet);
-                //         setMotor();
-                //     }
-                // } else if (motorSpeed > 0.01) { // otherwise decellerate
-                //     DEBUG_PRINTLN(F("Motor>stepShiftSpeed: Decreasing motor speed"));
-                //     changeSpeedValue(-1, timeSinceLastSet); 
-                //     setMotor();
-                // } 
             }
         }
 
@@ -239,19 +224,6 @@ class Motor {
             }
         }
 
-        // void changeSpeedValue(int increase, float timeElapsed) {  
-        //     // Change power output (always positive value)
-        //     float newSpeed = 0.0;
-        //     if (increase > 0) {
-        //         newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
-        //     } 
-        //     if (increase < 0) { // i.e. decrese power
-        //         newSpeed = max(0.01, motorSpeed - min(1.0, PWM_ACCELERATION*3 * timeElapsed));  // Never sets exactly ZERO speed
-        //     }
-        //     motorSpeed = newSpeed;
-        //     DEBUG_PRINT(F("Motor>changeSpeedValue: newSpeed = ")); DEBUG_PRINTLN(newSpeed);
-        // }
-
         void stopMotor() {
             motorSpeed = 0.0;
             motorDirection = 0;
@@ -259,7 +231,6 @@ class Motor {
         }
 
         void setMotor() {
-            // TODO: call the motor controller with motorDirection and motorSpeed
             if (brakeState == 0 && motorSpeed > 0.0 && (motorDirection == 1 || motorDirection == -1)) {
                 int realDir, realPwm;
                 realDir = (motorDirection > 0) ? 1 : 0;
@@ -279,13 +250,6 @@ class Motor {
             // Return distance to desired position
             float currentPosVolts = readPositionVolts();
             float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
-            
-            // TODO: Think about how to put this in again? Maybe not here?
-            // if (currentPosVolts > HIGH_LIMIT || currentPosVolts < LOW_LIMIT) {
-            //     return 0.0;  // Return zero distance if reading is out of range (to prevent trying to shift somewhere with a bad reading)
-            // }
-
-            // DEBUG_PRINT(F("Motor>desiredPositionDistance: "));DEBUG_PRINTLN(abs(currentPosVolts-desiredPosVolts));  // DEBUGGING
             return min(1.0, abs(currentPosVolts - desiredPosVolts));
         }
 
@@ -293,11 +257,6 @@ class Motor {
             // Return direction of desired position from current position
             float currentPosVolts = readPositionVolts();
             float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
-
-            // TODO: Put this or something similar back in.. probably not in this function
-            // if (currentPosVolts > HIGH_LIMIT || currentPosVolts < LOW_LIMIT) {
-            //     return 0;  // Return no direction if reading is out of range (to prevent trying to shift somewhere with bad reading)
-            // }
 
             if (currentPosVolts <= desiredPosVolts) {
                 DEBUG_PRINTLN(F("Motor>desiredPositionDirection: direction = -1"));
@@ -332,11 +291,17 @@ class Motor {
             , modePin(modePin)
             , output(out)
         {
-            pinMode(this->dirPin, OUTPUT);
-            pinMode(this->pwmPin, OUTPUT);
-            pinMode(this->brakeReleasePin, OUTPUT);
-            pinMode(this->modePin, INPUT);
-            // TODO: Possibly set up some stuff about PWM frequency? But probably doesn't matter
+        }
+
+        void begin() {
+            pinMode(dirPin, OUTPUT);
+            pinMode(pwmPin, OUTPUT);
+            pinMode(brakeReleasePin, OUTPUT);
+            pinMode(modePin, INPUT);
+
+            lastValidPos = readEEPROMposition();
+            currentPos = getPosition();
+
         }
 
         int getPosition() {
@@ -359,10 +324,6 @@ class Motor {
                 position = -1; // Bad position but in range
             }
             
-            // TODO: Might want this in final version? 
-            // if (position >= 0 && position <= 3) {
-            //     output->setMotorPos(position);
-            // }
             DEBUG_PRINT(F("Motor>getPosition: position = ")); DEBUG_PRINTLN(position);
             output->setMotorPos(position);
             return position;

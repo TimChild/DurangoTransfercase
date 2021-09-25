@@ -3,17 +3,17 @@
 #include "output.h"
 #include "specifications.h"
 
-#ifdef DEBUG
-  #define DEBUG_PRINTLN(x) Serial.println(x)
-  #define DEBUG_PRINT(x) Serial.print(x)
-#else
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINT(x)
+#ifndef DEBUG_PRINTLN
+  #ifdef DEBUG
+    #define DEBUG_PRINTLN(x) Serial.println(x)
+    #define DEBUG_PRINT(x) Serial.print(x)
+  #else
+    #define DEBUG_PRINTLN(x)
+    #define DEBUG_PRINT(x)
+  #endif
 #endif
 
 char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
-
-int FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
 class SelectorSwitch {
     private: 
@@ -22,6 +22,7 @@ class SelectorSwitch {
         int currentState;
         unsigned long timeEnteredState;
         OtherOutputs* output;  // Pointer so that it points to the same object everywhere
+        const int FIXED_RESISTOR;
 
         /**
          * Read position of selector switch
@@ -58,18 +59,17 @@ class SelectorSwitch {
         }
 
     public:
-        // Initialization
-        SelectorSwitch(int analogInput, OtherOutputs* out) 
+        SelectorSwitch(int analogInput, OtherOutputs* out, int FIXED_RESISTOR) 
             : modeSelectPin(analogInput)
             , lastValidState(1)
             , currentState(-1)
             , output(out)
+            , FIXED_RESISTOR(FIXED_RESISTOR)
             {
-                pinMode(analogInput, INPUT);
-                // lastValidState = (getSwitchPosition() >= 0) ? getSwitchPosition() : 1;
         }
 
-        void setup() {
+        void begin() {
+            pinMode(modeSelectPin, INPUT);
             checkState();
             delay(SW_DEBOUNCE_S*1000 + 50);
             checkState();

@@ -10,42 +10,43 @@
 
 #define DEBUG
 
-#ifdef DEBUG
-  #define DEBUG_PRINTLN(x) Serial.println(x)
-  #define DEBUG_PRINT(x) Serial.print(x)
-#else
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINT(x)
+#ifndef DEBUG_PRINTLN
+  #ifdef DEBUG
+    #define DEBUG_PRINTLN(x) Serial.println(x)
+    #define DEBUG_PRINT(x) Serial.print(x)
+  #else
+    #define DEBUG_PRINTLN(x)
+    #define DEBUG_PRINT(x)
+  #endif
 #endif
-
-// const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; // For LCD
+////// FOR LCD 
+// const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; 
 // const byte switchModePin = A0;
 // const byte motorPWMpin = 9;
 // const byte motorDirPin = 8;
 // const byte brakeReleasePin = 7;
 // const byte motorModePin = A1;
+// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-const byte TFT_CS = 10, TFT_DC = 9, TFT_RST = 8; // For TFT
-
-
+/////// FOR TFT
+const byte TFT_CS = 10, TFT_DC = 9, TFT_RST = 8; 
 const uint8_t switchModePin = A0;
 const byte motorPWMpin = 3;
 const byte motorDirPin = 2;
 const byte brakeReleasePin = 4;
 const uint8_t motorModePin = A1;
-
-// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
+int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
+
 OtherOutputs output = OtherOutputs(&tft);
-// OtherOutputs output = OtherOutputs();
-SelectorSwitch selector = SelectorSwitch(switchModePin, &output);
+SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
 int currentPosition = -1;  // Current position of Motor
 byte desiredPosition = 1;
   
-
 void bootTest() {
+  // TODO: Remove this fn, this is just for making sure scripts start running etc
   pinMode(LED_BUILTIN, OUTPUT);
   for (byte i = 0; i < 15; i++) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -53,8 +54,6 @@ void bootTest() {
     digitalWrite(LED_BUILTIN, LOW);
     delay(50);
   }
-
-  
 }
 
 
@@ -62,22 +61,18 @@ void bootTest() {
  * Runs once at Arduino Startup
 */
 void setup() {
-  SPI.begin();
+  //////////////////////// DEBUG
   bootTest();
-  // output.setTFT(&tft);
-  output.begin();
   #ifdef DEBUG
-    Serial.begin(115200); // DEBUGGING
+    Serial.begin(115200); 
   #endif
-
   DEBUG_PRINTLN(F("Main: Booting"));
+  //////////////////////// End of DEBUG
 
-  // output.setLcd(lcd); // Just makes a copy of LCD, not actually using the same object, but that's fine.
+  output.begin();
   output.setMainMessage(F("Booting"));
 
-  selector.setup();
-  // selector.setOutput(&output);  // Pass the address of output so that it is the same object everywhere
-  // motor.setOutput(&output);
+  selector.begin();
   output.setMainMessage("");
 }
 
@@ -105,16 +100,6 @@ void loop() {
     }
   }
   selector.checkState();
-
-  // delay(5000); // DEBUGGING
-
-  // motor.testMotorBackward(1000);
-  // motor.testBrake(1000);
-  // delay(1000);
-  // motor.testMotorForward(1000);
-  // delay(1000);
-  // motor.testMotorBackward(1000);
-  // delay(1000);
 }
 
 
