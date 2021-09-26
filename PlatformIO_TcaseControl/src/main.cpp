@@ -62,7 +62,6 @@ void bootTest() {
 */
 void setup() {
   //////////////////////// DEBUG
-  bootTest();
   #ifdef DEBUG
     Serial.begin(115200); 
   #endif
@@ -70,10 +69,14 @@ void setup() {
   //////////////////////// End of DEBUG
 
   output.begin();
-  output.setMainMessage(F("Booting"));
-
-  selector.begin();
-  output.setMainMessage("");
+  delay(2000);
+  motor.begin();
+  if (motor.getPosition() == 2)
+  {
+    selector.begin(1);
+  } else {
+    selector.begin(0);
+  }
 }
 
 

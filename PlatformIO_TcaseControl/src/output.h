@@ -14,6 +14,15 @@
   #endif
 #endif
 
+
+const int SCREEN_WIDTH = 128;
+const int SCREEN_HEIGHT = 128;
+const byte maxChars = SCREEN_WIDTH/8;  // Max no. characters per row on screen
+
+const uint16_t PINK = 0xF811;
+const uint16_t BLUE_GREY = 0x3B9C;
+
+
 void copystr(char *dest, const char *source, int len) {
     strncpy(dest, source, len);
     dest[len] = '\0';  // In case source did not fully copy, it is necessary to add termination character
@@ -32,56 +41,185 @@ void padString(char* str, int len) {
     str[len] = '\0'; // Rewrite the null character at the end to make it a valid string
 }
 
+void posToStr(char* text, byte pos) {
+    switch (pos) {
+        case 0:
+            sprintf(text, "4HI");
+            break;
+        case 1:
+            sprintf(text, "AWD");
+            break;
+        case 2:
+            sprintf(text, "N");
+            break;
+        case 3:
+            sprintf(text, "4LO");
+            break;
+        default: 
+            sprintf(text, "N/A");
+            break;
+    }
+}
+
+
 class ScreenOut {
     private:
         Adafruit_ST7735 *tft;
+        uint16_t bgColor = ST7735_BLACK;
+        uint16_t textColor = PINK;
+        uint16_t boxColor = BLUE_GREY;
+        byte currentLayout = 0;
+        
+        // Stores for displayed data so can check if things have changed
+        char currentMainText[maxChars*4];
+        byte currentSwitchPos;
+        int currentSwitchOhms;
+        byte currentMotorPos;
+        float currentMotorVolts;
+
+        void resetStored() {
+            sprintf(currentMainText, " ");
+            currentSwitchPos = 5;
+            currentSwitchOhms = 0;
+            currentMotorPos = 5;
+            currentMotorVolts = -1.0;
+        }
+
+        void writeBlock(const char* text, const byte cursorPosX, const byte cursorPosY, const byte fontSize, const byte width, const byte rows) {
+            if (rows > 1) {
+                tft->setTextWrap(1);
+            } else {
+                tft->setTextWrap(0);
+            }
+            tft->fillRect(cursorPosX, cursorPosY, width, fontSize*8*rows, bgColor); 
+            writeText(text, cursorPosX, cursorPosY, fontSize);
+        }
+
+        void writeText(const char* text, const byte cursorPosX, const byte cursorPosY, const byte fontSize) {
+            tft->setCursor(cursorPosX, cursorPosY);
+            tft->setTextColor(textColor);
+            tft->setTextSize(fontSize);
+            tft->print(text);
+        }
+
+        void initNormalLayout() {
+            // Default screen layout
+            tft->fillScreen(bgColor);
+            tft->setTextSize(1, 2);
+            tft->setTextColor(textColor);
+            tft->setTextWrap(false);
+
+            tft->drawRoundRect(0, 0, SCREEN_WIDTH/2, 70, 4, boxColor);  // For Switch
+            tft->setCursor(4, 2);
+            tft->print(F("Switch"));
+            tft->drawFastHLine(4, 17, SCREEN_WIDTH/2 - 8, boxColor);
+
+            tft->drawRoundRect(SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, 70, 4, boxColor);  // For Motor
+            tft->setCursor(SCREEN_WIDTH/2+4, 2);
+            tft->print(F("Motor"));
+            tft->drawFastHLine(SCREEN_WIDTH/2+4, 17, SCREEN_WIDTH/2 - 8, boxColor);
+
+            tft->drawRoundRect(0, 70, SCREEN_WIDTH, SCREEN_HEIGHT-70, 4, boxColor);  // For extra text
+
+            currentLayout = 1;
+        }
+
+        void drawCat() {
+            const byte r = SCREEN_HEIGHT/2-20;
+            const byte cx = SCREEN_WIDTH/2;
+            const byte cy = SCREEN_HEIGHT/2+0.1*r;
+            const uint16_t color = PINK;
+
+            tft->fillScreen(ST7735_BLACK);
+            tft->drawCircle(cx, cy, r, color);
+            drawCatSymParts(1, r, cx, cy, color);
+            drawCatSymParts(-1, r, cx, cy, color);
+
+            // Nose
+            tft->drawTriangle(cx-0.07*r, cy+0.1, cx+0.07*r, cy+0.1, cx, cy+0.2*r, color);
+
+            // Mouth
+            tft->startWrite();
+            tft->drawCircleHelper(cx-0.2*r, cy+0.2*r, 0.2*r, 4, color);
+            tft->drawCircleHelper(cx+0.2*r, cy+0.2*r, 0.2*r, 8, color);
+            tft->endWrite();
+        }
+
+        void drawCatSymParts(const int sign, const byte r, const byte cx, const byte cy, const uint16_t color) {
+            // Ear
+            tft->drawLine(cx-0.866*r*sign, cy-0.5*r, cx-0.9*r*sign, cy-1.5*r, color);
+            tft->drawLine(cx-0.5*r*sign, cy-0.866*r, cx-0.9*r*sign, cy-1.5*r, color);
+
+            // Whiskers
+            tft->drawLine(cx-0.3*r*sign, cy-0.10*r+0.2*r, cx-1.3*r*sign, cy-0.2*r, color);
+            tft->drawLine(cx-0.3*r*sign, cy-0.0*r+0.2*r, cx-1.3*r*sign, cy+0.1*r, color);
+            tft->drawLine(cx-0.3*r*sign, cy+0.10*r+0.2*r, cx-1.3*r*sign, cy+0.4*r, color);
+
+            // Eyes
+            tft->drawRoundRect(cx-0.4*r*sign-0.15*r, cy-0.3*r-0.1*r, 0.3*r, 0.2*r, 0.1*r, color);
+        }
+
 
     public:
         ScreenOut(Adafruit_ST7735 *tft) : tft(tft) {
         }
 
+
         void begin() {
             tft->initR(INITR_144GREENTAB);
             tft->setRotation(3);
             tft->fillScreen(ST77XX_BLACK);
+            drawCat();
         }
 
-        void writeScreen(char* mainMessage, byte switchPos, byte motorPos) {
-            char displayText[50];  // TODO: Something wrong with using 17 chars, looks like the \0 is being overwritten or soemthing
-            byte maxLen = 30;
-            copystr(displayText, mainMessage, maxLen);
-            padString(displayText, maxLen);  
+        void writeNormalValues(const char* mainText, const byte switchPos, const int switchOhms, const byte motorPos, const float motorVolts) {
+            char buffer[maxChars];
 
-            tft->setCursor(0,0);
-            tft->print(displayText);
-            
-            snprintf(displayText, maxLen, "%d  %d", switchPos, motorPos);
-            padString(displayText, maxLen);
-            tft->setCursor(0,20);
-            tft->print(displayText);
+            // Fill normal layout with values
+            if (currentLayout != 1) {
+                initNormalLayout();
+                resetStored();
+            }
+
+
+            if (switchPos != currentSwitchPos) {
+                posToStr(buffer, switchPos);
+                writeBlock(buffer, 4, 25, 2, SCREEN_WIDTH/2-8, 1);
+                currentSwitchPos = switchPos;
+            }
+
+            if (motorPos != currentMotorPos) {
+                posToStr(buffer, motorPos);
+                writeBlock(buffer, SCREEN_WIDTH/2+4, 25, 2, SCREEN_WIDTH/2-8, 1);
+                currentMotorPos = motorPos;
+            }
+
+            if (abs(switchOhms - currentSwitchOhms) > 10) {
+                sprintf(buffer, "%d \351", switchOhms);
+                writeBlock(buffer, 4, 50, 1, SCREEN_WIDTH/2-8, 1);
+                currentSwitchOhms = switchOhms;
+            }
+
+            if (abs(motorVolts - currentMotorVolts) > 0.02) {
+                char temp[6];
+                dtostrf(motorVolts, 4, 3, temp);
+                sprintf(buffer, "%s V", temp);
+                writeBlock(buffer, SCREEN_WIDTH/2+4, 50, 1, SCREEN_WIDTH/2-8, 1);
+                currentMotorVolts = motorVolts;
+            }
+
+            if (strcmp(mainText, currentMainText) != 0) {
+                writeBlock(mainText, 4, 75, 1, SCREEN_WIDTH-8, 4);
+                snprintf(currentMainText, maxChars, mainText);
+            }
+
         }
-        // void writeMode1() {
-        //     // Main messages in top, resistance in ohms and position in volts of motor in bottom
-        //     char displayText[17];
-        //     copystr(displayText, mainMessage, 16);
-        //     padString(displayText, 16);
-            
-        //     screen->setCursor(0,0);
-        //     screen->print(displayText);
 
-        //     char sfloat[5];
-        //     dtostrf(motorVolts, 4, 2, sfloat);
-        //     snprintf(displayText, 16, "Ohms: %d, Volts: %s", switchResistance, sfloat);
-        //     padString(displayText, 16);
-            
-        //     screen->setCursor(0,1);
-        //     screen->print(displayText);
-        // }
 };
 
 class OtherOutputs {
     private: 
-        char mainMessage[33];  // Main message text (sized to fit 32 characters plus \0 termination)
+        char mainMessage[maxChars*4];  // Main message text (sized to fit 32 characters plus \0 termination)
         int switchPos = -1; 
         int switchResistance = -1;
         int motorPos = -1;
@@ -91,7 +229,8 @@ class OtherOutputs {
         ScreenOut screenOut;
 
         void writeDisplay() {
-            screenOut.writeScreen(mainMessage, switchPos, motorPos);
+            // screenOut.writeScreen(mainMessage, switchPos, motorPos);
+            screenOut.writeNormalValues(mainMessage, switchPos, switchResistance, motorPos, motorVolts);
         }        
 
         void writeFakePinOuts() {

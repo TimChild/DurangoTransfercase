@@ -18,6 +18,7 @@ const int SW_OPEN_LOW = 19000;
 
 // Switch debounce time (s)
 const float SW_DEBOUNCE_S = 0.25;
+const float SW_N_PRESS_TIME_S = 3.0;
 
 
 // Mode sensor voltages

@@ -301,7 +301,6 @@ class Motor {
 
             lastValidPos = readEEPROMposition();
             currentPos = getPosition();
-
         }
 
         int getPosition() {

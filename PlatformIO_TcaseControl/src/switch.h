@@ -19,8 +19,10 @@ class SelectorSwitch {
     private: 
         byte modeSelectPin;
         byte lastValidState;
+        byte inNeutral = 0;
         int currentState;
         unsigned long timeEnteredState;
+        unsigned long timeLastChecked;
         OtherOutputs* output;  // Pointer so that it points to the same object everywhere
         const int FIXED_RESISTOR;
 
@@ -68,7 +70,10 @@ class SelectorSwitch {
             {
         }
 
-        void begin() {
+        void begin(byte NeutralState) {
+            if (NeutralState) {
+                inNeutral = 1;
+            }
             pinMode(modeSelectPin, INPUT);
             checkState();
             delay(SW_DEBOUNCE_S*1000 + 50);
@@ -77,22 +82,58 @@ class SelectorSwitch {
 
         int getSelection() {
             // Return current selection (last validState after calling check)
+            if (timeLastChecked > SW_DEBOUNCE_S)  // Do a full check of what state the switch is in if it's been a while since it was checked 
+            {
+                unsigned long now = millis();
+                while (millis() - now > SW_DEBOUNCE_S*1000+10) {
+                    checkState();
+                }
+            }
             checkState(); 
             return lastValidState;
+        }
+
+        void toggleNeutral() {
+            inNeutral = !inNeutral;
+            output->setMainMessage(F("Neutral Toggled"));
+            delay(100);
         }
         
         void checkState() {
             // Check the switch position. If new update current State and set timeEnteredState
             // If timeEnteredState > X set lastValidState
             int newState = getSwitchPosition();
-            if (newState != currentState) {
+            if (newState != currentState) {  // If switch has changed state
                 currentState = newState;
                 timeEnteredState = millis();
             }
-            if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
-                lastValidState = currentState;
+
+            if (currentState == 2) { // If Neutral currently pressed, keep checking until either a few S or button released
+                output->setMainMessage(F("Waiting for N Press duration"));
+                while (millis() - timeEnteredState < SW_N_PRESS_TIME_S*1000 && getSwitchPosition() == 2) {
+                    delay(10);
+                    currentState = getSwitchPosition();
+                }
+                output->setMainMessage(F("Neutral Toggle Registerd"));
+                if (millis() - timeEnteredState > SW_N_PRESS_TIME_S*1000) {
+                    while (getSwitchPosition() == 2) {
+                        delay(10);
+                        currentState = getSwitchPosition();
+                    }
+                    toggleNeutral();
+                }
             }
-            output->setSwitchPos(lastValidState);  // TODO: Re enable
+            else { // It not a Neutral press, carry on like normal
+                if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
+                    lastValidState = currentState;
+                }
+            }
+
+            if (inNeutral) {
+                lastValidState = 2;
+            }
+            output->setSwitchPos(lastValidState);  
+            timeLastChecked = millis();
         }
 };
 
