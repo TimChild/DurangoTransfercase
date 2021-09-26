@@ -210,9 +210,14 @@ class ScreenOut {
 
             if (strcmp(mainText, currentMainText) != 0) {
                 writeBlock(mainText, 4, 75, 1, SCREEN_WIDTH-8, 4);
-                snprintf(currentMainText, maxChars, mainText);
+                snprintf(currentMainText, maxChars*4, mainText);
             }
 
+        }
+
+        void showCat() {
+            drawCat();
+            currentLayout = -1;
         }
 
 };
@@ -255,13 +260,13 @@ class OtherOutputs {
         }
 
         void setMainMessage (const char *message) {
-            copystr(mainMessage, message, 16);
+            copystr(mainMessage, message, maxChars*4);
             writeOutputs();
         }
 
         void setMainMessage (const __FlashStringHelper *message) {
             // const char *buffer = (const char PROGMEM *)message;
-            copystr(mainMessage, message, 16);
+            copystr(mainMessage, message, maxChars*4);
             writeOutputs();
         }
 
@@ -297,5 +302,9 @@ class OtherOutputs {
         void setMotorMessage(const __FlashStringHelper *message) {
             copystr(mainMessage, message, 16);
             writeOutputs();
+        }
+
+        void showCat() {
+            screenOut.showCat();
         }
 };

@@ -114,14 +114,20 @@ class SelectorSwitch {
                     delay(10);
                     currentState = getSwitchPosition();
                 }
-                output->setMainMessage(F("Neutral Toggle Registerd"));
                 if (millis() - timeEnteredState > SW_N_PRESS_TIME_S*1000) {
+                    toggleNeutral();
+                    output->setSwitchPos(currentState);  
+                    output->setMainMessage(F("Neutral Toggle Registerd"));
                     while (getSwitchPosition() == 2) {
                         delay(10);
                         currentState = getSwitchPosition();
+                        output->setSwitchPos(currentState);  
                     }
-                    toggleNeutral();
+                } else {
+                    output->showCat();
+                    delay(2000);
                 }
+                output->setMainMessage(F(" "));
             }
             else { // It not a Neutral press, carry on like normal
                 if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
