@@ -1,5 +1,10 @@
 #pragma once
 
+#define FOURHI 0
+#define AWD 1
+#define NEUTRAL 2
+#define FOURLO 3
+
 // Switch resistance specs
 const int SW_SHORTED_HIGH = 150;
 const int SW_N_AWD_LOW = 176;

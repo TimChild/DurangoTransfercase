@@ -4,20 +4,18 @@
 #include <LiquidCrystal.h>
 #include <Adafruit_ST7735.h>
 
-#ifndef DEBUG_PRINTLN
-  #ifdef DEBUG
-    #define DEBUG_PRINTLN(x) Serial.println(x)
-    #define DEBUG_PRINT(x) Serial.print(x)
-  #else
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINT(x)
-  #endif
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
 #endif
 
 
 const int SCREEN_WIDTH = 128;
 const int SCREEN_HEIGHT = 128;
-const byte maxChars = SCREEN_WIDTH/8;  // Max no. characters per row on screen
+const byte maxChars = SCREEN_WIDTH/6;  // Max no. characters per row on screen
 
 const uint16_t PINK = 0xF811;
 const uint16_t BLUE_GREY = 0x3B9C;
@@ -41,7 +39,7 @@ void padString(char* str, int len) {
     str[len] = '\0'; // Rewrite the null character at the end to make it a valid string
 }
 
-void posToStr(char* text, byte pos) {
+void posToStr(char* text, int pos) {
     switch (pos) {
         case 0:
             sprintf(text, "4HI");
@@ -72,9 +70,9 @@ class ScreenOut {
         
         // Stores for displayed data so can check if things have changed
         char currentMainText[maxChars*4];
-        byte currentSwitchPos;
+        int currentSwitchPos;
         int currentSwitchOhms;
-        byte currentMotorPos;
+        int currentMotorPos;
         float currentMotorVolts;
 
         void resetStored() {
@@ -86,13 +84,19 @@ class ScreenOut {
         }
 
         void writeBlock(const char* text, const byte cursorPosX, const byte cursorPosY, const byte fontSize, const byte width, const byte rows) {
-            if (rows > 1) {
-                tft->setTextWrap(1);
-            } else {
-                tft->setTextWrap(0);
-            }
             tft->fillRect(cursorPosX, cursorPosY, width, fontSize*8*rows, bgColor); 
-            writeText(text, cursorPosX, cursorPosY, fontSize);
+            byte textLen = strlen(text);
+            byte charPerRow = maxChars-2;
+
+            int i = 0;
+            byte row = 0;
+            char buffer[maxChars];
+            while (i<textLen && row<rows) {
+                copystr(buffer, text+i, charPerRow);
+                writeText(buffer, cursorPosX, cursorPosY+8*fontSize*row, fontSize);
+                row+=1;
+                i+=charPerRow;
+            }
         }
 
         void writeText(const char* text, const byte cursorPosX, const byte cursorPosY, const byte fontSize) {
@@ -172,7 +176,7 @@ class ScreenOut {
             drawCat();
         }
 
-        void writeNormalValues(const char* mainText, const byte switchPos, const int switchOhms, const byte motorPos, const float motorVolts) {
+        void writeNormalValues(const char* mainText, const int switchPos, const int switchOhms, const int motorPos, const float motorVolts) {
             char buffer[maxChars];
 
             // Fill normal layout with values
@@ -181,8 +185,8 @@ class ScreenOut {
                 resetStored();
             }
 
-
             if (switchPos != currentSwitchPos) {
+                DEBUG_PRINT(F("ScreenOut>WriteNormalValues: switchPos = ")); DEBUG_PRINT(switchPos); DEBUG_PRINTLN("");
                 posToStr(buffer, switchPos);
                 writeBlock(buffer, 4, 25, 2, SCREEN_WIDTH/2-8, 1);
                 currentSwitchPos = switchPos;
@@ -230,7 +234,7 @@ class OtherOutputs {
         int motorPos = -1;
         float motorVolts = -1;
         int displayMode = 0;  // So screen can display different information based on selected mode
-        char motorMessage[33]; // Message from Motor
+        // char motorMessage[33]; // Message from Motor
         ScreenOut screenOut;
 
         void writeDisplay() {
@@ -294,15 +298,15 @@ class OtherOutputs {
             writeOutputs();
         }
 
-        void setMotorMessage(const char *message) {
-            copystr(motorMessage, message, 16);
-            writeOutputs();
-        }
+        // void setMotorMessage(const char *message) {
+        //     copystr(motorMessage, message, 16);
+        //     writeOutputs();
+        // }
 
-        void setMotorMessage(const __FlashStringHelper *message) {
-            copystr(mainMessage, message, 16);
-            writeOutputs();
-        }
+        // void setMotorMessage(const __FlashStringHelper *message) {
+        //     copystr(mainMessage, message, 16);
+        //     writeOutputs();
+        // }
 
         void showCat() {
             screenOut.showCat();

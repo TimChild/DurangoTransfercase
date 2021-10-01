@@ -10,15 +10,14 @@
 
 #define DEBUG
 
-#ifndef DEBUG_PRINTLN
-  #ifdef DEBUG
-    #define DEBUG_PRINTLN(x) Serial.println(x)
-    #define DEBUG_PRINT(x) Serial.print(x)
-  #else
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINT(x)
-  #endif
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
 #endif
+
 ////// FOR LCD 
 // const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; 
 // const byte switchModePin = A0;
@@ -80,14 +79,17 @@ void setup() {
 }
 
 
-/**
- * Runs repeatedly after Arduino setup()
- */
-void loop() {
-  // bootTest();
+
+void testSwitch() {
+  desiredPosition = selector.getSelection();
+  delay(100); 
+}
+
+
+void normal() {
   DEBUG_PRINTLN(F("Main: Starting Loop"));  // Debugging
 
-  selector.checkState(); // This should run frequently to check current switch position
+  selector.checkState(); // This should run frequently to check current switch position (i.e. for debouce purposes)
   desiredPosition = selector.getSelection();
   currentPosition = motor.getPosition();
 
@@ -99,10 +101,20 @@ void loop() {
     motor.attemptShift(desiredPosition, 1);
     if (motor.getPosition() != desiredPosition) {
       // TODO: Think about what to do here if either shift failed, or potentially in bad state?
+
       DEBUG_PRINTLN(F("Main: Failed to reach position"));
     }
   }
   selector.checkState();
+
+}
+
+
+/**
+ * Runs repeatedly after Arduino setup()
+ */
+void loop() {
+  testSwitch();
 }
 
 

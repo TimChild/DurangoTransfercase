@@ -4,15 +4,14 @@
 #include "specifications.h"
 #include <EEPROM.h>
 
-#ifndef DEBUG_PRINTLN
-  #ifdef DEBUG
-    #define DEBUG_PRINTLN(x) Serial.println(x)
-    #define DEBUG_PRINT(x) Serial.print(x)
-  #else
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINT(x)
-  #endif
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
 #endif
+
 char m_buf[100];  // DEBUGGING: string buffer to avoid use of String
 
 int readEEPROMposition() {
@@ -49,7 +48,7 @@ void setEEPROMposition(int pos) {
 
 class Motor {
     private:
-        byte lastValidPos = 5; // Properly set in .begin()
+        int lastValidPos = 5; // Properly set in .begin()
         int currentPos = 5;  // Properly set in .begin() 
         byte brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
         float motorSpeed = 0.0; // 0.0 - 1.0
@@ -97,7 +96,7 @@ class Motor {
                 stopMotor();
                 if (singleShiftAttempts > maxAttempts) {  // If failed to shift to new position
                     if (lastValidPos >= 0) {
-                        output->setMotorMessage(F("WARNING: Failed to shift to new position, returning to previous position"));
+                        output->setMainMessage(F("WARNING: Failed to shift to new position, returning to previous position"));
                         DEBUG_PRINTLN(F("Motor>checkShiftWorking: Failed to shift to new position, returning to previous"));  // DEBUGGING
                         int returnPosition = lastValidPos;
                         setLastValidPos(-1);  // Record that the current state is invalid
@@ -106,7 +105,7 @@ class Motor {
                         // attemptShift(returnPosition, 15);  // Try harder (15x) to return to a valid state
                         attemptShift(returnPosition, 1);  //  DEBUGGING: Reduced attemts to return to previous position
                     } else {  // Already previously failed to get to new position
-                        output->setMotorMessage("ERROR: Failed to return to previous position, not currently in valid state!");
+                        output->setMainMessage("ERROR: Failed to return to previous position, not currently in valid state!");
                         DEBUG_PRINTLN(F("Motor>checkShiftWorking: Failed to return to previous position, not currently in valid state!"));  // DEBUGGING
                         // TODO: Need to think about how to prevent the shift starting again
                         // IMPORTANT TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -131,6 +130,7 @@ class Motor {
          */
         float readPositionVolts() {
             float volts = analogRead(modePin)*5.0/1024.0;
+            output->setMotorVolts(volts);
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);
             return volts;
         }
@@ -272,9 +272,9 @@ class Motor {
             while (shiftReady() != 1)
             {
                 delay(10);  // TODO: Change this to do other things while waiting? I.e. check switchPosition or update screen?
-                if (shiftReady() == -1 || millis() - waitStart > 30*1000){
+                if (shiftReady() == -1 || millis() - waitStart > 10*1000){
                     DEBUG_PRINTLN(F("Motor>waitForShiftReady: Shift not ready and needs to abort"));
-                    output->setMotorMessage(F("Shift not ready and needs to abort"));
+                    output->setMainMessage(F("Shift not ready and needs to abort"));
                     delay(1000); 
                     return -1;  
                 }
@@ -307,7 +307,6 @@ class Motor {
             // Check position from motor, if valid update last valid and return, 
             // otherwise return last valid
             float currentPosVolts = readPositionVolts();
-
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range

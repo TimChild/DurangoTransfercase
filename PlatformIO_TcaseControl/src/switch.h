@@ -3,14 +3,12 @@
 #include "output.h"
 #include "specifications.h"
 
-#ifndef DEBUG_PRINTLN
-  #ifdef DEBUG
-    #define DEBUG_PRINTLN(x) Serial.println(x)
-    #define DEBUG_PRINT(x) Serial.print(x)
-  #else
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINT(x)
-  #endif
+#ifdef DEBUG
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
 #endif
 
 char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
@@ -18,7 +16,7 @@ char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String
 class SelectorSwitch {
     private: 
         byte modeSelectPin;
-        byte lastValidState;
+        int lastValidState;
         byte inNeutral = 0;
         int currentState;
         unsigned long timeEnteredState;
@@ -45,13 +43,13 @@ class SelectorSwitch {
             if (ohms < SW_SHORTED_HIGH || ohms > SW_OPEN_LOW) {
                 position = -2;  // Bad position and out of range
             } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
-                position = 0;
+                position = FOURHI;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
-                position = 1;
+                position = AWD;
             } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW)) && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))) {
-                position = 2;
+                position = NEUTRAL;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
-                position = 3;
+                position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
             }
@@ -60,10 +58,41 @@ class SelectorSwitch {
             return position;
         }
 
+        void neutralPressed() {
+            output->setMainMessage(F("Neutral Pressed"));
+            while (millis() - timeEnteredState < SW_N_PRESS_TIME_S*1000 && getSwitchPosition() == NEUTRAL) {
+                delay(10);
+                currentState = getSwitchPosition();
+            }
+            if (millis() - timeEnteredState > SW_N_PRESS_TIME_S*1000) {
+                toggleNeutral();
+                output->setMainMessage(F("Neutral Toggled"));
+                while (getSwitchPosition() == 2) {
+                    delay(10);
+                    currentState = getSwitchPosition();
+                }
+                output->setSwitchPos(currentState);
+            } else {
+                output->showCat();
+                delay(2000);
+            }
+            output->setMainMessage(F(" "));
+
+        }
+
+        void toggleNeutral() {
+            inNeutral = !inNeutral;
+            if (inNeutral) {
+                output->setSwitchPos(NEUTRAL);
+            }
+            output->setMainMessage(F("Neutral Toggled"));  // TODO: Replace with something that flashes a big N or something like that
+            delay(100);
+        }
+
     public:
         SelectorSwitch(int analogInput, OtherOutputs* out, int FIXED_RESISTOR) 
             : modeSelectPin(analogInput)
-            , lastValidState(1)
+            , lastValidState(AWD)
             , currentState(-1)
             , output(out)
             , FIXED_RESISTOR(FIXED_RESISTOR)
@@ -90,15 +119,11 @@ class SelectorSwitch {
                 }
             }
             checkState(); 
+            output->setSwitchPos(lastValidState);
             return lastValidState;
         }
 
-        void toggleNeutral() {
-            inNeutral = !inNeutral;
-            output->setMainMessage(F("Neutral Toggled"));
-            delay(100);
-        }
-        
+
         void checkState() {
             // Check the switch position. If new update current State and set timeEnteredState
             // If timeEnteredState > X set lastValidState
@@ -108,28 +133,9 @@ class SelectorSwitch {
                 timeEnteredState = millis();
             }
 
-            if (currentState == 2) { // If Neutral currently pressed, keep checking until either a few S or button released
-                output->setMainMessage(F("Waiting for N Press duration"));
-                while (millis() - timeEnteredState < SW_N_PRESS_TIME_S*1000 && getSwitchPosition() == 2) {
-                    delay(10);
-                    currentState = getSwitchPosition();
-                }
-                if (millis() - timeEnteredState > SW_N_PRESS_TIME_S*1000) {
-                    toggleNeutral();
-                    output->setSwitchPos(currentState);  
-                    output->setMainMessage(F("Neutral Toggle Registerd"));
-                    while (getSwitchPosition() == 2) {
-                        delay(10);
-                        currentState = getSwitchPosition();
-                        output->setSwitchPos(currentState);  
-                    }
-                } else {
-                    output->showCat();
-                    delay(2000);
-                }
-                output->setMainMessage(F(" "));
-            }
-            else { // It not a Neutral press, carry on like normal
+            if (currentState == NEUTRAL) { // If Neutral currently pressed, keep checking until either a few S or button released
+                neutralPressed();
+            } else { // Not a Neutral press, carry on like normal
                 if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
                     lastValidState = currentState;
                 }
