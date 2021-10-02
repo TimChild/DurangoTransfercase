@@ -4,6 +4,8 @@
 #include <LiquidCrystal.h>
 #include <Adafruit_ST7735.h>
 
+#define DEBUG
+
 #ifdef DEBUG
   #define DEBUG_PRINTLN(x) Serial.println(x)
   #define DEBUG_PRINT(x) Serial.print(x)
@@ -15,7 +17,7 @@
 
 const int SCREEN_WIDTH = 128;
 const int SCREEN_HEIGHT = 128;
-const byte maxChars = SCREEN_WIDTH/6;  // Max no. characters per row on screen
+const int maxChars = SCREEN_WIDTH/6;  // Max no. characters per row on screen
 
 const uint16_t PINK = 0xF811;
 const uint16_t BLUE_GREY = 0x3B9C;
@@ -228,7 +230,7 @@ class ScreenOut {
 
 class OtherOutputs {
     private: 
-        char mainMessage[maxChars*4];  // Main message text (sized to fit 32 characters plus \0 termination)
+        char mainMessage[maxChars*4+1];  // Main message text (sized to fit 32 characters plus \0 termination)
         int switchPos = -1; 
         int switchResistance = -1;
         int motorPos = -1;

@@ -8,7 +8,7 @@
 #include "switch.h"
 #include "output.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
   #define DEBUG_PRINTLN(x) Serial.println(x)
@@ -61,9 +61,7 @@ void bootTest() {
 */
 void setup() {
   //////////////////////// DEBUG
-  #ifdef DEBUG
-    Serial.begin(115200); 
-  #endif
+  Serial.begin(115200); 
   DEBUG_PRINTLN(F("Main: Booting"));
   //////////////////////// End of DEBUG
 
@@ -82,7 +80,7 @@ void setup() {
 
 void testSwitch() {
   desiredPosition = selector.getSelection();
-  delay(100); 
+  delay(1000); 
 }
 
 
