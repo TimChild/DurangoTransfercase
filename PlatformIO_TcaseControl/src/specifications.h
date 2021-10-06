@@ -75,7 +75,7 @@ const float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "speci
 // float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 const float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
 const byte PWM_MAX_POWER = 200; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
-const byte PWM_MIN_POWER = 25; // Not specified in manual - probably need some minimum power to actually make motor move
+const byte PWM_MIN_POWER = 15; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift motor braking parameters (apply 12V to both shift motor wires)
 // const byte STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO

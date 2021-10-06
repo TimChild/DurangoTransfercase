@@ -71,7 +71,7 @@ class ScreenOut {
         byte currentLayout = 0;
         
         // Stores for displayed data so can check if things have changed
-        char currentMainText[maxChars*4];
+        char currentMainText[maxChars*4+1];
         int currentSwitchPos;
         int currentSwitchOhms;
         int currentMotorPos;
@@ -179,7 +179,7 @@ class ScreenOut {
         }
 
         void writeNormalValues(const char* mainText, const int switchPos, const int switchOhms, const int motorPos, const float motorVolts) {
-            char buffer[maxChars];
+            char buffer[maxChars+1];
 
             // Fill normal layout with values
             if (currentLayout != 1) {

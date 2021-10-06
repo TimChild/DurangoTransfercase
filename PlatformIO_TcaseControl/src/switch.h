@@ -121,6 +121,7 @@ class SelectorSwitch {
         void begin(byte NeutralState) {
             if (NeutralState) {
                 inNeutral = 1;
+                lastValidState = NEUTRAL;
             }
             pinMode(modeSelectPin, INPUT);
             getSelection();

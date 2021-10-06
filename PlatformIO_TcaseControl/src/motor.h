@@ -311,13 +311,13 @@ class Motor {
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range
             } else if (currentPosVolts > LOCK_LOW && currentPosVolts < LOCK_HIGH) {
-                position = 0;
+                position = FOURHI;
             } else if (currentPosVolts > AWD_LOW && currentPosVolts < AWD_HIGH) {
-                position = 1;
+                position = AWD;
             } else if (currentPosVolts > N_LOW && currentPosVolts < N_HIGH) {
-                position = 2;
+                position = NEUTRAL;
             } else if (currentPosVolts > LO_LOW && currentPosVolts < LO_HIGH) {
-                position = 3;
+                position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
             }

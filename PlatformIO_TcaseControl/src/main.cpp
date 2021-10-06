@@ -68,7 +68,7 @@ void setup() {
   output.begin();
   delay(2000);
   motor.begin();
-  if (motor.getPosition() == 2)
+  if (motor.getPosition() == NEUTRAL)
   {
     selector.begin(1);
   } else {
@@ -87,7 +87,6 @@ void testSwitch() {
 void normal() {
   DEBUG_PRINTLN(F("Main: Starting Loop"));  // Debugging
 
-  selector.checkState(); // This should run frequently to check current switch position (i.e. for debouce purposes)
   desiredPosition = selector.getSelection();
   currentPosition = motor.getPosition();
 
@@ -103,8 +102,6 @@ void normal() {
       DEBUG_PRINTLN(F("Main: Failed to reach position"));
     }
   }
-  selector.checkState();
-
 }
 
 
@@ -112,7 +109,8 @@ void normal() {
  * Runs repeatedly after Arduino setup()
  */
 void loop() {
-  testSwitch();
+  // testSwitch();
+  normal();
 }
 
 
