@@ -334,7 +334,7 @@ class Motor {
 
             initializeShift();
             DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance() = ")); DEBUG_PRINTLN(desiredPositionDistance(desiredPos));
-            while (desiredPositionDistance(desiredPos) > 0.01) {
+            while (desiredPositionDistance(desiredPos) > POSITION_TOLERANCE) {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
                 addShiftAttempt();
                 if (checkShiftWorking(maxAttempts) > 0) {

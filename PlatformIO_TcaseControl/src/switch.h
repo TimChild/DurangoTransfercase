@@ -49,7 +49,7 @@ class SelectorSwitch {
                 position = FOURHI;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
                 position = AWD;
-            } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW)) && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))) {
+            } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW))*0.9 && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))*1.1) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
                 position = NEUTRAL;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
                 position = FOURLO;
@@ -61,6 +61,8 @@ class SelectorSwitch {
 
         void neutralPressed() {
             int currentState;
+            char previousMessage[maxChars*4+1];
+            output->getMainMessage(previousMessage, maxChars*4);
             output->setMainMessage(F("Neutral Pressed"));
             DEBUG_PRINTLN(F("N Pressed"));
             while (millis() - timeEnteredState < SW_N_PRESS_TIME_S*1000 && getSwitchPosition() == NEUTRAL) {
@@ -86,11 +88,10 @@ class SelectorSwitch {
                 DEBUG_PRINTLN(lastValidState);
                 output->setSwitchPos(lastValidState);
             } else {  // Neutral only pressed for short time, show easter egg but do nothing to switch position or lastValidState
-                output->showCat();
-                delay(1000);
+                output->showCat(1000);
             }
-            DEBUG_PRINTLN(F("setting message to blank"));
-            output->setMainMessage(F(" "));
+            DEBUG_PRINTLN(F("setting back to previous message"));
+            output->setMainMessage(previousMessage);
         }
 
         void toggleNeutral() {

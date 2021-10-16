@@ -57,6 +57,15 @@ void bootTest() {
   }
 }
 
+void waitUntilReset() {
+  output.setMainMessage(F("Failed to shift: Return switch to current motor position"));
+  while (selector.getSelection() != motor.getPosition()) {
+    delay(10);
+  }
+  output.setMainMessage(F("Reset successful"));
+  delay(1000);
+  output.setMainMessage(F(""));
+}
 
 /**
  * Runs once at Arduino Startup
@@ -97,11 +106,10 @@ void normal() {
 
   if (currentPosition != desiredPosition) {
     // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-    motor.attemptShift(desiredPosition, 1);
+    motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
     if (motor.getPosition() != desiredPosition) {
-      // TODO: Think about what to do here if either shift failed, or potentially in bad state?
-
       DEBUG_PRINTLN(F("Main: Failed to reach position"));
+      waitUntilReset();
     }
   }
 }

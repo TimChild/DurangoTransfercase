@@ -248,12 +248,12 @@ class OtherOutputs {
         int motorPos = -1;
         float motorVolts = -1;
         int displayMode = 0;  // So screen can display different information based on selected mode
-        uint8_t fakeSwitchPin;
-        uint8_t fakeMotorPin;
         byte fakeSwitchState = AWD;
         byte fakeMotorState = AWD;
         // char motorMessage[33]; // Message from Motor
         ScreenOut screenOut;
+        uint8_t fakeSwitchPin;
+        uint8_t fakeMotorPin;
 
         void writeDisplay() {
             // screenOut.writeScreen(mainMessage, switchPos, motorPos);
@@ -313,6 +313,10 @@ class OtherOutputs {
             copystr(mainMessage, message, maxChars*4);
             writeOutputs();
         }
+        
+        void getMainMessage(char* str, int strlen) {
+            copystr(str, mainMessage, strlen);
+        }
 
         void setSwitchPos(int pos) {
             if (0 <= pos && pos <= 3) {
@@ -348,7 +352,9 @@ class OtherOutputs {
         //     writeOutputs();
         // }
 
-        void showCat() {
+        void showCat(int delay_ms) {
             screenOut.showCat();
+            delay(delay_ms);
+            writeOutputs();
         }
 };
