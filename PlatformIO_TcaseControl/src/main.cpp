@@ -33,12 +33,14 @@ const uint8_t switchModePin = A0;
 const byte motorPWMpin = 3;
 const byte motorDirPin = 2;
 const byte brakeReleasePin = 4;
+const uint8_t fakeSwitchPin = 5;
+const uint8_t fakeMotorPin = 6;
 const uint8_t motorModePin = A1;
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
-OtherOutputs output = OtherOutputs(&tft);
+OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
 int currentPosition = -1;  // Current position of Motor

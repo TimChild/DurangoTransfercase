@@ -15,12 +15,7 @@
 
 char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
 
-bool isValid(int pos) {
-    if (pos >= 0 && pos <= 3) {
-        return true;
-    } 
-    return false;
-}
+
 
 class SelectorSwitch {
     private: 

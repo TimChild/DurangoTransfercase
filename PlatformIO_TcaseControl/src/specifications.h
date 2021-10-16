@@ -5,6 +5,8 @@
 #define NEUTRAL 2
 #define FOURLO 3
 
+// All for NV244 transfercase
+
 // Switch resistance specs
 const int SW_SHORTED_HIGH = 150;
 const int SW_N_AWD_LOW = 176;
@@ -20,6 +22,7 @@ const int SW_LOCK_HIGH = 2503;
 const int SW_LO_LOW = 4820;
 const int SW_LO_HIGH = 5334;
 const int SW_OPEN_LOW = 19000;
+// NV144: Same as NV244 but only 4HI and AWD
 
 // Switch debounce time (s)
 const float SW_DEBOUNCE_S = 0.25;
@@ -39,6 +42,9 @@ const float LO_HIGH = 1.57;
 const float LOW_LIMIT = 0.50;
 const float HIGH_LIMIT = 4.51;
 // TODO: Note to self, shifting from 4LO to AWD first shifts from 4LO to 4HIGH then back to AWD
+// NV144: 
+// 4HI = 4.19 -> 4.35
+// AWD = 0.45 -> 0.55
 
 // Shift parameters
 // float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change

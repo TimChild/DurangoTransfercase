@@ -3,6 +3,7 @@
 #include <Wire.h>  // For LiquidCrystal
 #include <LiquidCrystal.h>
 #include <Adafruit_ST7735.h>
+#include "Images.h"
 
 #define DEBUG
 
@@ -22,6 +23,13 @@ const int maxChars = SCREEN_WIDTH/6;  // Max no. characters per row on screen
 const uint16_t PINK = 0xF811;
 const uint16_t BLUE_GREY = 0x3B9C;
 
+
+bool isValid(int pos) {
+    if (pos >= 0 && pos <= 3) {
+        return true;
+    } 
+    return false;
+}
 
 void copystr(char *dest, const char *source, int len) {
     strncpy(dest, source, len);
@@ -131,24 +139,28 @@ class ScreenOut {
         }
 
         void drawCat() {
-            const byte r = SCREEN_HEIGHT/2-20;
-            const byte cx = SCREEN_WIDTH/2;
-            const byte cy = SCREEN_HEIGHT/2+0.1*r;
-            const uint16_t color = PINK;
+            tft->fillScreen(bgColor);
+            tft->drawBitmap(0, 0, cat, 128, 128, PINK);
 
-            tft->fillScreen(ST7735_BLACK);
-            tft->drawCircle(cx, cy, r, color);
-            drawCatSymParts(1, r, cx, cy, color);
-            drawCatSymParts(-1, r, cx, cy, color);
 
-            // Nose
-            tft->drawTriangle(cx-0.07*r, cy+0.1, cx+0.07*r, cy+0.1, cx, cy+0.2*r, color);
+            // const byte r = SCREEN_HEIGHT/2-20;
+            // const byte cx = SCREEN_WIDTH/2;
+            // const byte cy = SCREEN_HEIGHT/2+0.1*r;
+            // const uint16_t color = PINK;
 
-            // Mouth
-            tft->startWrite();
-            tft->drawCircleHelper(cx-0.2*r, cy+0.2*r, 0.2*r, 4, color);
-            tft->drawCircleHelper(cx+0.2*r, cy+0.2*r, 0.2*r, 8, color);
-            tft->endWrite();
+            // tft->fillScreen(ST7735_BLACK);
+            // tft->drawCircle(cx, cy, r, color);
+            // drawCatSymParts(1, r, cx, cy, color);
+            // drawCatSymParts(-1, r, cx, cy, color);
+
+            // // Nose
+            // tft->drawTriangle(cx-0.07*r, cy+0.1, cx+0.07*r, cy+0.1, cx, cy+0.2*r, color);
+
+            // // Mouth
+            // tft->startWrite();
+            // tft->drawCircleHelper(cx-0.2*r, cy+0.2*r, 0.2*r, 4, color);
+            // tft->drawCircleHelper(cx+0.2*r, cy+0.2*r, 0.2*r, 8, color);
+            // tft->endWrite();
         }
 
         void drawCatSymParts(const int sign, const byte r, const byte cx, const byte cy, const uint16_t color) {
@@ -236,6 +248,10 @@ class OtherOutputs {
         int motorPos = -1;
         float motorVolts = -1;
         int displayMode = 0;  // So screen can display different information based on selected mode
+        uint8_t fakeSwitchPin;
+        uint8_t fakeMotorPin;
+        byte fakeSwitchState = AWD;
+        byte fakeMotorState = AWD;
         // char motorMessage[33]; // Message from Motor
         ScreenOut screenOut;
 
@@ -247,15 +263,37 @@ class OtherOutputs {
         void writeFakePinOuts() {
             // Set pin outs to trick the Car into thinking it's in a certain state
             // TODO: Set pin outs (probably using pwm analog out with a lowpass filter?)
+            if (isValid(switchPos)) {
+                if (switchPos == AWD && fakeSwitchState != 0){
+                    digitalWrite(fakeSwitchPin, LOW);
+                    fakeSwitchState = 0;
+                } else if (switchPos != AWD && fakeSwitchState != 1) {
+                    digitalWrite(fakeSwitchPin, HIGH);
+                    fakeSwitchState = 1;
+                }
+            }
+            if (isValid(motorPos)) {
+                if (motorPos == AWD && fakeMotorState != 0){
+                    digitalWrite(fakeMotorPin, LOW);
+                    fakeMotorState = 0;
+                } else if (motorPos != AWD && fakeMotorState != 1) {
+                    digitalWrite(fakeMotorPin, HIGH);
+                    fakeMotorState = 1;
+                }
+            }
         }
 
     public:
-        OtherOutputs(Adafruit_ST7735 *tft) : screenOut(tft) {
+        OtherOutputs(Adafruit_ST7735 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
         } 
 
         void begin() {
             screenOut.begin();
             // TODO: Set pin outs for whatever I end up using to trick car
+            pinMode(fakeSwitchPin, OUTPUT);
+            pinMode(fakeMotorPin, OUTPUT);
+            digitalWrite(fakeSwitchPin, LOW);
+            digitalWrite(fakeMotorPin, LOW);
         }
 
         void writeOutputs() {
