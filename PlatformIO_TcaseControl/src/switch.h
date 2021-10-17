@@ -15,6 +15,8 @@
 
 char sw_buf[100];  // DEBUGGING: to use for Serial prints to avoid using String 
 
+const int messageBufferLength = maxChars*4;
+char messageBuffer[messageBufferLength+1];
 
 
 class SelectorSwitch {
@@ -61,8 +63,7 @@ class SelectorSwitch {
 
         void neutralPressed() {
             int currentState;
-            char previousMessage[maxChars*4+1];
-            output->getMainMessage(previousMessage, maxChars*4);
+            output->getMainMessage(messageBuffer, messageBufferLength);
             output->setMainMessage(F("Neutral Pressed"));
             DEBUG_PRINTLN(F("N Pressed"));
             while (millis() - timeEnteredState < SW_N_PRESS_TIME_S*1000 && getSwitchPosition() == NEUTRAL) {
@@ -88,10 +89,10 @@ class SelectorSwitch {
                 DEBUG_PRINTLN(lastValidState);
                 output->setSwitchPos(lastValidState);
             } else {  // Neutral only pressed for short time, show easter egg but do nothing to switch position or lastValidState
-                output->showCat(1000);
+                output->showCat(2000);
             }
             DEBUG_PRINTLN(F("setting back to previous message"));
-            output->setMainMessage(previousMessage);
+            output->setMainMessage(messageBuffer);
         }
 
         void toggleNeutral() {
@@ -153,6 +154,29 @@ class SelectorSwitch {
                 }
             }
             timeLastChecked = millis();
+        }
+
+        void waitForLongNpress(float duration_s) {
+            unsigned long time;
+            output->getMainMessage(messageBuffer, messageBufferLength);
+            while (1) {  // Keep looping through this until N is pressed for duration_s
+                while (getSwitchPosition() != NEUTRAL) {
+                    delay(10);
+                }
+                time = millis();
+                output->setMainMessage(F("N pressed"));
+                while (millis() - time < duration_s*1000 && getSwitchPosition() == NEUTRAL) {
+                    delay(10);
+                }
+                if (millis() - time > duration_s*1000) {
+                    output->setMainMessage(F("N pressed"));
+                    break;
+                } else {
+                    output->setMainMessage(F("N released early"));
+                    delay(500);
+                }
+            }
+            output->setMainMessage(messageBuffer);
         }
         // void checkState() {
         //     // Check the switch position. If new update current State and set timeEnteredState

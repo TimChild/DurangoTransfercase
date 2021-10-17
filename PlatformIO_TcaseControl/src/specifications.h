@@ -50,8 +50,9 @@ const float HIGH_LIMIT = 4.51;
 // float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
 const float MAX_SHIFT_TIME_S = 3.0;  // Max time to try shifting per position change
 const byte MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before shifting back
+const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back to the last valid state after a failed shift
 // const float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
-// const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
+const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 const float POSITION_TOLERANCE = 0.01;  // Stop shifting once within this distance of target voltage
 
 // From Service Manual:

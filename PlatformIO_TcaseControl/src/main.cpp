@@ -57,15 +57,25 @@ void bootTest() {
   }
 }
 
+void waitUntilLongNpress() {
+  output.setMainMessage(F("WARNING: Motor position is not valid. Hold N for 5s to reset"));
+  selector.waitForLongNpress(5.0);
+  output.setMainMessage(F(""));
+}
+
 void waitUntilReset() {
-  output.setMainMessage(F("Failed to shift: Return switch to current motor position"));
-  while (selector.getSelection() != motor.getPosition()) {
+  output.setMainMessage(F("Failed to shift: Put switch in motor position"));
+  while (selector.getSelection() != motor.getValidPosition()) {
     delay(10);
+  }
+  if (!isValid(motor.getPosition())) { 
+    waitUntilLongNpress();
   }
   output.setMainMessage(F("Reset successful"));
   delay(1000);
   output.setMainMessage(F(""));
 }
+
 
 /**
  * Runs once at Arduino Startup
@@ -97,20 +107,25 @@ void testSwitch() {
 
 void normal() {
   DEBUG_PRINTLN(F("Main: Starting Loop"));  // Debugging
+  bool success = false;
 
   desiredPosition = selector.getSelection();
-  currentPosition = motor.getPosition();
-
-  DEBUG_PRINTLN(desiredPosition);
-  DEBUG_PRINTLN(currentPosition);
-
-  if (currentPosition != desiredPosition) {
+  if (motor.getPosition() != desiredPosition) {
     // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-    motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-    if (motor.getPosition() != desiredPosition) {
+    // if (motor.getPosition() != desiredPosition) {
+    //   DEBUG_PRINTLN(F("Main: Failed to reach position"));
+    //   waitUntilReset();
+    // }
+    success = motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
+    if (success) {
+      output.setMainMessage(F("Shift completed successfully"));
+      delay(1000);
+      output.setMainMessage(F(""));
+    } else {
       DEBUG_PRINTLN(F("Main: Failed to reach position"));
       waitUntilReset();
     }
+
   }
 }
 

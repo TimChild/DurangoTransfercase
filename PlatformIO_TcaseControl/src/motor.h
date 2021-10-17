@@ -12,6 +12,9 @@
   #define DEBUG_PRINT(x)
 #endif
 
+#define OFF 0
+#define ON 1
+
 char m_buf[100];  // DEBUGGING: string buffer to avoid use of String
 
 int readEEPROMposition() {
@@ -50,7 +53,7 @@ class Motor {
     private:
         int lastValidPos = 5; // Properly set in .begin()
         int currentPos = 5;  // Properly set in .begin() 
-        byte brakeState = 1; // By default the brake is ON and must be disabled by setting brakePin HIGH
+        byte brakeState = ON; // By default the brake is ON and must be disabled by setting brakePin HIGH
         float motorSpeed = 0.0; // 0.0 - 1.0
         int motorDirection = 0;  // -1, 0, 1 (0 for not moving)
         int singleShiftAttempts = 0;  
@@ -67,52 +70,39 @@ class Motor {
             DEBUG_PRINTLN("Motor>initializeShift: Initializing Shift");  // DEBUGGING
 
             singleShiftAttempts = 0;
-            setBrake(0); 
-            delay(BRAKE_RELEASE_TIME_S);  // TODO might want to change these delays to check other things in the meantime
+            setBrake(OFF); 
+            delay(BRAKE_RELEASE_TIME_S*1000);  // TODO might want to change these delays to check other things in the meantime
             lastMotorSetTime = millis();  // Reset the time so that first set doesn't think it was ages ago.
             shiftStart = millis();
-            output->setMainMessage("");  // DEBUGGING
+            output->setMainMessage("");  
         }
 
-        int endShift(int desiredPos){
+        bool endShift(int desiredPos){
+            // Returns whether shift ended successfully (i.e. reached desired or not)
             DEBUG_PRINTLN(F("Motor>endShift: Shift ending"));
-
             stopMotor();
-            delay(BRAKE_RELEASE_TIME_S);
-            setBrake(1);
+            delay(BRAKE_RELEASE_TIME_S*1000);
+            setBrake(ON);
             if (getPosition() == desiredPos) {
                 setLastValidPos(desiredPos);
-                output->setMainMessage(F("Shift completed successfully"));
-                delay(1000);
-                output->setMainMessage("");
-                return 1;
+                return true;
             }
-            return -1;
+            return false;
         }
 
         int checkShiftWorking(int maxAttempts) {
-            if (millis() - shiftStart > MAX_SHIFT_TIME_S*1000) { // If current shift attempt fails
+            // Returns 1 if shift is still OK, otherwise returns < 0 (i.e. in time limits, and not too many attempts)
+            if (millis() - shiftStart > MAX_SHIFT_TIME_S*1000) { // If current shift attempt fails by timing out
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Max time exceeded, stopping"));  // DEBUGGING
                 stopMotor();
-                if (singleShiftAttempts > maxAttempts) {  // If failed to shift to new position
-                    if (lastValidPos >= 0) {
-                        output->setMainMessage(F("WARNING: Failed to shift to new position, returning to previous position"));
-                        DEBUG_PRINTLN(F("Motor>checkShiftWorking: Failed to shift to new position, returning to previous"));  // DEBUGGING
-                        int returnPosition = lastValidPos;
-                        setLastValidPos(-1);  // Record that the current state is invalid
-                        delay(1000);  // Ensure message appears for at least 1s
-
-                        // attemptShift(returnPosition, 15);  // Try harder (15x) to return to a valid state
-                        attemptShift(returnPosition, 1);  //  DEBUGGING: Reduced attemts to return to previous position
-                    } else {  // Already previously failed to get to new position
-                        output->setMainMessage("ERROR: Failed to return to previous position, not currently in valid state!");
-                        DEBUG_PRINTLN(F("Motor>checkShiftWorking: Failed to return to previous position, not currently in valid state!"));  // DEBUGGING
-                        // TODO: Need to think about how to prevent the shift starting again
-                        // IMPORTANT TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        delay(1000);  // Just so that the message at least shows up for 1 second
-                    }
+                if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
+                    output->setMainMessage(F("Shift attempt failed. Will retry"));
+                    addShiftAttempt();
+                    delay(RETRY_TIME_S*1000);
+                    return 1;  // OK to continue trying to shift again
+                } else {
+                    return -1; // Shift has failed, abort
                 }
-                return -1; // Current shift failed
             } else {
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Shift OK to continue"));  // DEBUGGING
                 return 1; // Shift OK
@@ -160,18 +150,17 @@ class Motor {
 
         int shiftReady() {
             // Return 1 if valid time to shift, 0 if not, -1 if need to abort shift
-            return 1;  // TODO: Need to figure out how to make an array and stuff. Or maybe just do simple option of only allow shift every X seconds
+            return 1;  // TODO: Only allow a shift every X seconds? 
         }
 
         void addShiftAttempt() {
-            // Add a shift attempt at current time, and clear out any shifts that are too old
-            // TODO
+            singleShiftAttempts += 1;
         }
 
         void setBrake(int brake) {
             // 0 for brake OFF (Which is actually brakePin high to release brake)
             // 1 for brake ON (Which is actually brakePin low to leave brake on)
-            if (brake == 0 || brake == 1) {
+            if (brake == OFF || brake == ON) {
                 brakeState = brake;
                 DEBUG_PRINT(F("Motor>setBrake: Setting brake pin to ")); DEBUG_PRINT((1-brakeState)); DEBUG_PRINT(F(" to achieve brake state " )); DEBUG_PRINTLN(brakeState); 
                 digitalWrite(brakeReleasePin, 1-brakeState);  // (1-X) because the brake is ON by default and HIGH turns it OFF. 
@@ -231,7 +220,7 @@ class Motor {
         }
 
         void setMotor() {
-            if (brakeState == 0 && motorSpeed > 0.0 && (motorDirection == 1 || motorDirection == -1)) {
+            if (brakeState == OFF && motorSpeed > 0.0 && (motorDirection == 1 || motorDirection == -1)) {
                 int realDir, realPwm;
                 realDir = (motorDirection > 0) ? 1 : 0;
                 realPwm = max(PWM_MAX_POWER*motorSpeed, PWM_MIN_POWER);
@@ -283,6 +272,21 @@ class Motor {
             return 1;
         }
 
+        void tryRecoverBadShift(int previousDesiredPos) {
+            if (previousDesiredPos != lastValidPos && isValid(lastValidPos)) {  // If not already trying to return to a previous valid state, do that now
+                output->setMainMessage(F("Shift failed: Attempting to return to last valid state"));
+                delay(2000);
+                attemptShift(lastValidPos, MAX_RETURN_SHIFT_ATTEMPTS);
+                if (getPosition() == lastValidPos) {
+                    output->setMainMessage(F("Successfully returned to last valid state"));
+                    delay(1000);
+                } else {
+                    output->setMainMessage(F("WARNING: Failed to get back to a valid state!"));
+                    delay(5000);
+                }
+            }
+        }
+
     public:
         Motor(int pwmPin, int dirPin, int brakeReleasePin, int modePin, OtherOutputs* out)
             : dirPin(dirPin)
@@ -327,7 +331,16 @@ class Motor {
             return position;
         }
 
-        int attemptShift(int desiredPos, int maxAttempts) {
+        int getValidPosition() {
+            // Same as getPosition, but will return lastValidPosition if not currently valid
+            int position = getPosition();
+            if (!isValid(position)) {
+                position = lastValidPos;
+            }
+            return position;
+        }
+
+        bool attemptShift(int desiredPos, int maxAttempts) {
             if (waitForShiftReady() < 0) {
                 return -1;  // Shift not ready and needs to be aborted
             }
@@ -336,35 +349,34 @@ class Motor {
             DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance() = ")); DEBUG_PRINTLN(desiredPositionDistance(desiredPos));
             while (desiredPositionDistance(desiredPos) > POSITION_TOLERANCE) {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
-                addShiftAttempt();
                 if (checkShiftWorking(maxAttempts) > 0) {
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
-                } else {
+                } else {  // Failed to shift
+                    tryRecoverBadShift(desiredPos);
                     break;
                 }
                 output->setMotorVolts(readPositionVolts());
-                DEBUG_PRINTLN("");
             }
             return endShift(desiredPos);
         }
 
         void testBrake(int ms) {
-            setBrake(0);
+            setBrake(OFF);
             delay(ms);
-            setBrake(1);
+            setBrake(ON);
         }
 
         void testMotorForward(int ms) {
             output->setMainMessage(F("Testing Forward"));
             motorDirection = 1;
             motorSpeed = 0.1;
-            setBrake(0);
+            setBrake(OFF);
             delay(500);
             setMotor();
             delay(ms);
             stopMotor();
             delay(500);
-            setBrake(1);
+            setBrake(ON);
             output->setMainMessage("");
         }
 
@@ -372,13 +384,13 @@ class Motor {
             output->setMainMessage(F("Testing Backward"));
             motorDirection = -1;
             motorSpeed = 0.1;
-            setBrake(0);
+            setBrake(OFF);
             delay(500);
             setMotor();
             delay(ms);
             stopMotor();
             delay(500);
-            setBrake(1);
+            setBrake(ON);
             output->setMainMessage("");
         }
 
