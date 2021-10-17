@@ -84,6 +84,7 @@ class ScreenOut {
         int currentSwitchOhms;
         int currentMotorPos;
         float currentMotorVolts;
+        bool currentMotorPosValid;
 
         void resetStored() {
             sprintf(currentMainText, " ");
@@ -91,6 +92,7 @@ class ScreenOut {
             currentSwitchOhms = 0;
             currentMotorPos = 5;
             currentMotorVolts = -1.0;
+            currentMotorPosValid = true;
         }
 
         void writeBlock(const char* text, const byte cursorPosX, const byte cursorPosY, const byte fontSize, const byte width, const byte rows) {
@@ -114,6 +116,12 @@ class ScreenOut {
             tft->setTextColor(textColor);
             tft->setTextSize(fontSize);
             tft->print(text);
+        }
+
+        void strikeThrough(const byte startX, const byte startY, const byte width, const byte fontsize) {
+            byte endX = startX + width;
+            tft->drawLine(startX, startY, endX-1, startY+8*fontsize-1, textColor);
+            tft->drawLine(startX, startY+8*fontsize-1, endX-1, startY, textColor);
         }
 
         void initNormalLayout() {
@@ -140,7 +148,10 @@ class ScreenOut {
 
         void drawCat() {
             tft->fillScreen(bgColor);
-            tft->drawBitmap(0, 0, cat, 128, 128, PINK);
+            uint16_t colors [] = {0xF800, 0xFC00, 0xFFE0, 0x07E0, 0x001F, 0xF81F};
+            long i = random(6);
+            tft->drawBitmap(0, 0, cat, 128, 128, colors[i]);
+            // tft->drawBitmap(0, 0, cat, 128, 128, PINK);
 
 
             // const byte r = SCREEN_HEIGHT/2-20;
@@ -163,19 +174,19 @@ class ScreenOut {
             // tft->endWrite();
         }
 
-        void drawCatSymParts(const int sign, const byte r, const byte cx, const byte cy, const uint16_t color) {
-            // Ear
-            tft->drawLine(cx-0.866*r*sign, cy-0.5*r, cx-0.9*r*sign, cy-1.5*r, color);
-            tft->drawLine(cx-0.5*r*sign, cy-0.866*r, cx-0.9*r*sign, cy-1.5*r, color);
+        // void drawCatSymParts(const int sign, const byte r, const byte cx, const byte cy, const uint16_t color) {
+        //     // Ear
+        //     tft->drawLine(cx-0.866*r*sign, cy-0.5*r, cx-0.9*r*sign, cy-1.5*r, color);
+        //     tft->drawLine(cx-0.5*r*sign, cy-0.866*r, cx-0.9*r*sign, cy-1.5*r, color);
 
-            // Whiskers
-            tft->drawLine(cx-0.3*r*sign, cy-0.10*r+0.2*r, cx-1.3*r*sign, cy-0.2*r, color);
-            tft->drawLine(cx-0.3*r*sign, cy-0.0*r+0.2*r, cx-1.3*r*sign, cy+0.1*r, color);
-            tft->drawLine(cx-0.3*r*sign, cy+0.10*r+0.2*r, cx-1.3*r*sign, cy+0.4*r, color);
+        //     // Whiskers
+        //     tft->drawLine(cx-0.3*r*sign, cy-0.10*r+0.2*r, cx-1.3*r*sign, cy-0.2*r, color);
+        //     tft->drawLine(cx-0.3*r*sign, cy-0.0*r+0.2*r, cx-1.3*r*sign, cy+0.1*r, color);
+        //     tft->drawLine(cx-0.3*r*sign, cy+0.10*r+0.2*r, cx-1.3*r*sign, cy+0.4*r, color);
 
-            // Eyes
-            tft->drawRoundRect(cx-0.4*r*sign-0.15*r, cy-0.3*r-0.1*r, 0.3*r, 0.2*r, 0.1*r, color);
-        }
+        //     // Eyes
+        //     tft->drawRoundRect(cx-0.4*r*sign-0.15*r, cy-0.3*r-0.1*r, 0.3*r, 0.2*r, 0.1*r, color);
+        // }
 
 
     public:
@@ -190,7 +201,7 @@ class ScreenOut {
             drawCat();
         }
 
-        void writeNormalValues(const char* mainText, const int switchPos, const int switchOhms, const int motorPos, const float motorVolts) {
+        void writeNormalValues(const char* mainText, const int switchPos, const int switchOhms, const int motorPos, const float motorVolts, bool motorPosValid) {
             char buffer[maxChars+1];
 
             // Fill normal layout with values
@@ -206,13 +217,17 @@ class ScreenOut {
                 currentSwitchPos = switchPos;
             }
 
-            if (motorPos != currentMotorPos) {
+            if (motorPos != currentMotorPos || motorPosValid != currentMotorPosValid) {
                 posToStr(buffer, motorPos);
                 writeBlock(buffer, SCREEN_WIDTH/2+4, 25, 2, SCREEN_WIDTH/2-8, 1);
+                if (!motorPosValid) {
+                    strikeThrough(SCREEN_WIDTH/2+4, 25, SCREEN_WIDTH/2-8, 2);
+                }
                 currentMotorPos = motorPos;
+                currentMotorPosValid = motorPosValid;
             }
 
-            if (abs(switchOhms - currentSwitchOhms) > 10) {
+            if (abs(switchOhms - currentSwitchOhms) > 15) {
                 sprintf(buffer, "%d \351", switchOhms);
                 writeBlock(buffer, 4, 50, 1, SCREEN_WIDTH/2-8, 1);
                 currentSwitchOhms = switchOhms;
@@ -246,6 +261,7 @@ class OtherOutputs {
         int switchPos = -1; 
         int switchResistance = -1;
         int motorPos = -1;
+        bool motorPosValid = true;
         float motorVolts = -1;
         int displayMode = 0;  // So screen can display different information based on selected mode
         byte fakeSwitchState = AWD;
@@ -257,7 +273,7 @@ class OtherOutputs {
 
         void writeDisplay() {
             // screenOut.writeScreen(mainMessage, switchPos, motorPos);
-            screenOut.writeNormalValues(mainMessage, switchPos, switchResistance, motorPos, motorVolts);
+            screenOut.writeNormalValues(mainMessage, switchPos, switchResistance, motorPos, motorVolts, motorPosValid);
         }        
 
         void writeFakePinOuts() {
@@ -330,9 +346,13 @@ class OtherOutputs {
             writeOutputs();
         }
 
-        void setMotorPos(int pos) {
+        void setMotorPos(int pos, int lastValid) {
             if (0 <= pos && pos <= 3) {
                 motorPos = pos;
+                motorPosValid = true;
+            } else {
+                motorPos = lastValid;
+                motorPosValid = false;
             }
             writeOutputs();
         }

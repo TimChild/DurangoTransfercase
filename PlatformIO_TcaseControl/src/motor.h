@@ -59,10 +59,11 @@ class Motor {
         int singleShiftAttempts = 0;  
         unsigned long shiftStart;
         unsigned long lastMotorSetTime = millis();  // Last time motor speed was updated
-        byte dirPin;
-        byte pwmPin;
-        byte brakeReleasePin;
-        byte modePin;
+        uint8_t dirPin;
+        uint8_t pwmPin;
+        uint8_t brakeReleasePin;
+        uint8_t modePin;
+        uint8_t vOutPin;
         OtherOutputs *output;
 
         void initializeShift() {
@@ -84,7 +85,6 @@ class Motor {
             delay(BRAKE_RELEASE_TIME_S*1000);
             setBrake(ON);
             if (getPosition() == desiredPos) {
-                setLastValidPos(desiredPos);
                 return true;
             }
             return false;
@@ -99,6 +99,7 @@ class Motor {
                     output->setMainMessage(F("Shift attempt failed. Will retry"));
                     addShiftAttempt();
                     delay(RETRY_TIME_S*1000);
+                    output->setMainMessage(F("Retrying"));
                     return 1;  // OK to continue trying to shift again
                 } else {
                     return -1; // Shift has failed, abort
@@ -119,7 +120,8 @@ class Motor {
          * Read position of mode sensor in Volts
          */
         float readPositionVolts() {
-            float volts = analogRead(modePin)*5.0/1024.0;
+            // float volts = analogRead(modePin)*5.0/1024.0;
+            float volts = analogRead(modePin)*5.0/analogRead(vOutPin);
             output->setMotorVolts(volts);
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);
             return volts;
@@ -288,11 +290,12 @@ class Motor {
         }
 
     public:
-        Motor(int pwmPin, int dirPin, int brakeReleasePin, int modePin, OtherOutputs* out)
+        Motor(uint8_t pwmPin, uint8_t dirPin, uint8_t brakeReleasePin, uint8_t modePin, uint8_t vOutPin,OtherOutputs* out)
             : dirPin(dirPin)
             , pwmPin(pwmPin)
             , brakeReleasePin(brakeReleasePin)
             , modePin(modePin)
+            , vOutPin(vOutPin)
             , output(out)
         {
         }
@@ -302,14 +305,14 @@ class Motor {
             pinMode(pwmPin, OUTPUT);
             pinMode(brakeReleasePin, OUTPUT);
             pinMode(modePin, INPUT);
+            pinMode(vOutPin, INPUT);
 
             lastValidPos = readEEPROMposition();
             currentPos = getPosition();
         }
 
         int getPosition() {
-            // Check position from motor, if valid update last valid and return, 
-            // otherwise return last valid
+            // Check current position, returns -1 or -2 for bad positions
             float currentPosVolts = readPositionVolts();
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
@@ -325,9 +328,13 @@ class Motor {
             } else {
                 position = -1; // Bad position but in range
             }
-            
+
+            if (isValid(position)) {
+                setLastValidPos(position);
+            }
+
             DEBUG_PRINT(F("Motor>getPosition: position = ")); DEBUG_PRINTLN(position);
-            output->setMotorPos(position);
+            output->setMotorPos(position, lastValidPos);
             return position;
         }
 

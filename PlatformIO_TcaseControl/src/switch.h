@@ -35,7 +35,12 @@ class SelectorSwitch {
         int readSwitchPositionOhms() {
             // Returns resistance of switch
             float Vin = 5.0;
-            float Vout = 5.0/1024*analogRead(modeSelectPin);
+            float Vout = 0.0;
+            for (int i=0; i<10; i++) {
+                Vout += 5.0*analogRead(modeSelectPin)/1024;
+            } 
+            Vout = Vout/10.0;
+            // float Vout = 5.0/1024*analogRead(modeSelectPin);
             int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
             output->setSwitchResistance(resistance); 
             return resistance;
@@ -174,6 +179,7 @@ class SelectorSwitch {
                 } else {
                     output->setMainMessage(F("N released early"));
                     delay(500);
+                    output->setMainMessage(messageBuffer);
                 }
             }
             output->setMainMessage(messageBuffer);
