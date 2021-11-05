@@ -5,7 +5,7 @@
 #include <Adafruit_ST7735.h>
 #include "Images.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
   #define DEBUG_PRINTLN(x) Serial.println(x)
@@ -16,9 +16,12 @@
 #endif
 
 
-const int SCREEN_WIDTH = 128;
-const int SCREEN_HEIGHT = 128;
-const int maxChars = SCREEN_WIDTH/6;  // Max no. characters per row on screen
+// const int SCREEN_WIDTH = 128;
+// const int SCREEN_HEIGHT = 128;
+const int SCREEN_WIDTH = 240;
+const int SCREEN_HEIGHT = 240;
+const byte SF = 2;  // Overall Scale Factor for display (i.e. 1 for 128x128px, 2 for 240x240px to make things look similar size)
+const int maxChars = SCREEN_WIDTH/6/SF;  // Max no. characters per row on screen
 
 const uint16_t PINK = 0xF811;
 const uint16_t BLUE_GREY = 0x3B9C;
@@ -72,7 +75,8 @@ void posToStr(char* text, int pos) {
 
 class ScreenOut {
     private:
-        Adafruit_ST7735 *tft;
+        // Adafruit_ST7735 *tft;
+        Adafruit_ST7789 *tft;
         uint16_t bgColor = ST7735_BLACK;
         uint16_t textColor = PINK;
         uint16_t boxColor = BLUE_GREY;
@@ -126,22 +130,23 @@ class ScreenOut {
 
         void initNormalLayout() {
             // Default screen layout
+
             tft->fillScreen(bgColor);
-            tft->setTextSize(1, 2);
+            tft->setTextSize(1*SF, 2*SF);
             tft->setTextColor(textColor);
             tft->setTextWrap(false);
 
-            tft->drawRoundRect(0, 0, SCREEN_WIDTH/2, 70, 4, boxColor);  // For Switch
-            tft->setCursor(4, 2);
+            tft->drawRoundRect(0, 0, SCREEN_WIDTH/2, 70*SF, 4*SF, boxColor);  // For Switch
+            tft->setCursor(4*SF, 2*SF);
             tft->print(F("Switch"));
-            tft->drawFastHLine(4, 17, SCREEN_WIDTH/2 - 8, boxColor);
+            tft->drawFastHLine(4*SF, 17*SF, SCREEN_WIDTH/2 - 8*SF, boxColor);
 
-            tft->drawRoundRect(SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, 70, 4, boxColor);  // For Motor
-            tft->setCursor(SCREEN_WIDTH/2+4, 2);
+            tft->drawRoundRect(SCREEN_WIDTH/2, 0*SF, SCREEN_WIDTH/2, 70*SF, 4*SF, boxColor);  // For Motor
+            tft->setCursor(SCREEN_WIDTH/2+4*SF, 2*SF);
             tft->print(F("Motor"));
-            tft->drawFastHLine(SCREEN_WIDTH/2+4, 17, SCREEN_WIDTH/2 - 8, boxColor);
+            tft->drawFastHLine(SCREEN_WIDTH/2+4*SF, 17*SF, SCREEN_WIDTH/2 - 8*SF, boxColor);
 
-            tft->drawRoundRect(0, 70, SCREEN_WIDTH, SCREEN_HEIGHT-70, 4, boxColor);  // For extra text
+            tft->drawRoundRect(0, 70*SF, SCREEN_WIDTH, SCREEN_HEIGHT-70*SF, 4*SF, boxColor);  // For extra text
 
             currentLayout = 1;
         }
@@ -150,7 +155,8 @@ class ScreenOut {
             tft->fillScreen(bgColor);
             uint16_t colors [] = {0xF800, 0xFC00, 0xFFE0, 0x07E0, 0x001F, 0xF81F};
             long i = random(6);
-            tft->drawBitmap(0, 0, cat, 128, 128, colors[i]);
+            // tft->drawBitmap(0, 0, cat, 128, 128, colors[i]);
+            tft->drawBitmap(0, 0, cat, 240, 240, colors[i]);
             // tft->drawBitmap(0, 0, cat, 128, 128, PINK);
 
 
@@ -190,13 +196,16 @@ class ScreenOut {
 
 
     public:
-        ScreenOut(Adafruit_ST7735 *tft) : tft(tft) {
+        // ScreenOut(Adafruit_ST7735 *tft) : tft(tft) {
+        ScreenOut(Adafruit_ST7789 *tft) : tft(tft) {
         }
 
 
         void begin() {
-            tft->initR(INITR_144GREENTAB);
-            tft->setRotation(3);
+            // tft->initR(INITR_144GREENTAB);
+            tft->init(240, 240);
+            // tft->setRotation(3);
+            tft->setRotation(2);
             tft->fillScreen(ST77XX_BLACK);
             drawCat();
         }
@@ -213,15 +222,15 @@ class ScreenOut {
             if (switchPos != currentSwitchPos) {
                 DEBUG_PRINT(F("ScreenOut>WriteNormalValues: switchPos = ")); DEBUG_PRINT(switchPos); DEBUG_PRINTLN("");
                 posToStr(buffer, switchPos);
-                writeBlock(buffer, 4, 25, 2, SCREEN_WIDTH/2-8, 1);
+                writeBlock(buffer, 4*SF, 25*SF, 2*SF, SCREEN_WIDTH/2-8*SF, 1);
                 currentSwitchPos = switchPos;
             }
 
             if (motorPos != currentMotorPos || motorPosValid != currentMotorPosValid) {
                 posToStr(buffer, motorPos);
-                writeBlock(buffer, SCREEN_WIDTH/2+4, 25, 2, SCREEN_WIDTH/2-8, 1);
+                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 25*SF, 2*SF, SCREEN_WIDTH/2-8*SF, 1);
                 if (!motorPosValid) {
-                    strikeThrough(SCREEN_WIDTH/2+4, 25, SCREEN_WIDTH/2-8, 2);
+                    strikeThrough(SCREEN_WIDTH/2+4*SF, 25*SF, SCREEN_WIDTH/2-8*SF, 2*SF);
                 }
                 currentMotorPos = motorPos;
                 currentMotorPosValid = motorPosValid;
@@ -229,7 +238,7 @@ class ScreenOut {
 
             if (abs(switchOhms - currentSwitchOhms) > 15) {
                 sprintf(buffer, "%d \351", switchOhms);
-                writeBlock(buffer, 4, 50, 1, SCREEN_WIDTH/2-8, 1);
+                writeBlock(buffer, 4*SF, 50*SF, 1*SF, SCREEN_WIDTH/2-8*SF, 1);
                 currentSwitchOhms = switchOhms;
             }
 
@@ -237,12 +246,12 @@ class ScreenOut {
                 char temp[6];
                 dtostrf(motorVolts, 4, 3, temp);
                 sprintf(buffer, "%s V", temp);
-                writeBlock(buffer, SCREEN_WIDTH/2+4, 50, 1, SCREEN_WIDTH/2-8, 1);
+                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 50*SF, 1*SF, SCREEN_WIDTH/2-8*SF, 1);
                 currentMotorVolts = motorVolts;
             }
 
             if (strcmp(mainText, currentMainText) != 0) {
-                writeBlock(mainText, 4, 75, 1, SCREEN_WIDTH-8, 4);
+                writeBlock(mainText, 4*SF, 75*SF, 1*SF, SCREEN_WIDTH-8*SF, 4);
                 snprintf(currentMainText, maxChars*4, mainText);
             }
 
@@ -300,7 +309,8 @@ class OtherOutputs {
         }
 
     public:
-        OtherOutputs(Adafruit_ST7735 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
+        // OtherOutputs(Adafruit_ST7735 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
+        OtherOutputs(Adafruit_ST7789 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
         } 
 
         void begin() {

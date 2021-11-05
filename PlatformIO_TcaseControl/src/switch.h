@@ -3,7 +3,7 @@
 #include "output.h"
 #include "specifications.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
   #define DEBUG_PRINTLN(x) Serial.println(x)
@@ -39,7 +39,7 @@ class SelectorSwitch {
             for (int i=0; i<10; i++) {
                 Vout += 5.0*analogRead(modeSelectPin)/1024;
             } 
-            Vout = Vout/10.0;
+            Vout = Vout/10.0;  // Because of averaging
             // float Vout = 5.0/1024*analogRead(modeSelectPin);
             int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
             output->setSwitchResistance(resistance); 

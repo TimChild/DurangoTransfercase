@@ -2,7 +2,8 @@
 #include <SPI.h>
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
+// #include <Adafruit_ST7735.h>
+#include <Adafruit_ST7789.h>
 #include "specifications.h"
 #include "motor.h"
 #include "switch.h"
@@ -37,12 +38,15 @@ const uint8_t fakeSwitchPin = 5;
 const uint8_t fakeMotorPin = 6;
 const uint8_t motorModePin = A1;
 const uint8_t vOutRead = A2;
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+const uint8_t backLightPin = 7;
+// Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 
-int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
+// int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
+int SWITCH_FIXED_RESISTOR = 4620;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
-OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);
+OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);  // TODO: Add backLightPin and some backlight control
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, vOutRead, &output);
 int currentPosition = -1;  // Current position of Motor
