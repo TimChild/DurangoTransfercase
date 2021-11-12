@@ -41,7 +41,7 @@ class SelectorSwitch {
             } 
             Vout = Vout/10.0;  // Because of averaging
             // float Vout = 5.0/1024*analogRead(modeSelectPin);
-            int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout;
+            int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout - 1000;  // -1000 because of inline 1kOhm resistor on 5V output of cluster (using cluster 5V)
             output->setSwitchResistance(resistance); 
             return resistance;
         }
