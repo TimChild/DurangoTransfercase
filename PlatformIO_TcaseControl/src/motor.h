@@ -63,7 +63,7 @@ class Motor {
         uint8_t pwmPin;
         uint8_t brakeReleasePin;
         uint8_t modePin;
-        uint8_t vOutPin;
+        // uint8_t vOutPin;
         OtherOutputs *output;
 
         void initializeShift() {
@@ -120,8 +120,8 @@ class Motor {
          * Read position of mode sensor in Volts
          */
         float readPositionVolts() {
-            // float volts = analogRead(modePin)*5.0/1024.0;
-            float volts = analogRead(modePin)*5.0/analogRead(vOutPin);
+            float volts = analogRead(modePin)*5.0/1024.0;
+            // float volts = analogRead(modePin)*5.0/analogRead(vOutPin);
             output->setMotorVolts(volts);
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);
             return volts;
@@ -290,12 +290,13 @@ class Motor {
         }
 
     public:
-        Motor(uint8_t pwmPin, uint8_t dirPin, uint8_t brakeReleasePin, uint8_t modePin, uint8_t vOutPin,OtherOutputs* out)
+        // Motor(uint8_t pwmPin, uint8_t dirPin, uint8_t brakeReleasePin, uint8_t modePin, uint8_t vOutPin,OtherOutputs* out)
+        Motor(uint8_t pwmPin, uint8_t dirPin, uint8_t brakeReleasePin, uint8_t modePin, OtherOutputs* out)
             : dirPin(dirPin)
             , pwmPin(pwmPin)
             , brakeReleasePin(brakeReleasePin)
             , modePin(modePin)
-            , vOutPin(vOutPin)
+            // , vOutPin(vOutPin)
             , output(out)
         {
         }
@@ -305,7 +306,7 @@ class Motor {
             pinMode(pwmPin, OUTPUT);
             pinMode(brakeReleasePin, OUTPUT);
             pinMode(modePin, INPUT);
-            pinMode(vOutPin, INPUT);
+            // pinMode(vOutPin, INPUT);
 
             lastValidPos = readEEPROMposition();
             currentPos = getPosition();

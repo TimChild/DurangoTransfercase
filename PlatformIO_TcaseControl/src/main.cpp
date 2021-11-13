@@ -37,7 +37,6 @@ const uint8_t brakeReleasePin = 4;
 const uint8_t fakeSwitchPin = 5;
 const uint8_t fakeMotorPin = 6;
 const uint8_t motorModePin = A1;
-const uint8_t vOutRead = A2;
 const uint8_t backLightPin = 7;
 // Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
@@ -48,7 +47,8 @@ int SWITCH_FIXED_RESISTOR = 4620;  // Resistance of fixed resistor for detecing 
 
 OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);  // TODO: Add backLightPin and some backlight control
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
-Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, vOutRead, &output);
+// Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, vOutRead, &output);
+Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
 int currentPosition = -1;  // Current position of Motor
 byte desiredPosition = 1;
   
