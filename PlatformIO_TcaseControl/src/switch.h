@@ -56,7 +56,8 @@ class SelectorSwitch {
                 position = FOURHI;
             } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
                 position = AWD;
-            } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW))*0.9 && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))*1.1) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
+            // } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW))*0.9 && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))*1.1) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
+            } else if (ohms > 100 && ohms < 500) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
                 position = NEUTRAL;
             } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
                 position = FOURLO;
