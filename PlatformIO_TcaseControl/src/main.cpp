@@ -45,6 +45,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 // int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 int SWITCH_FIXED_RESISTOR = 4620;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
+
 OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);  // TODO: Add backLightPin and some backlight control
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
 // Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, vOutRead, &output);

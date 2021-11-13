@@ -54,6 +54,7 @@ const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back
 // const float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
 const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 const float POSITION_TOLERANCE = 0.01;  // Stop shifting once within this distance of target voltage
+float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> outside of ideal range when returning current motor position
 
 // From Service Manual:
 // "Current attempt limit values are 25 transitions in 30 seconds and default mode

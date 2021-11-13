@@ -318,13 +318,13 @@ class Motor {
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range
-            } else if (currentPosVolts > LOCK_LOW && currentPosVolts < LOCK_HIGH) {
+            } else if (currentPosVolts > LOCK_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURHI;
-            } else if (currentPosVolts > AWD_LOW && currentPosVolts < AWD_HIGH) {
+            } else if (currentPosVolts > AWD_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
                 position = AWD;
-            } else if (currentPosVolts > N_LOW && currentPosVolts < N_HIGH) {
+            } else if (currentPosVolts > N_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
                 position = NEUTRAL;
-            } else if (currentPosVolts > LO_LOW && currentPosVolts < LO_HIGH) {
+            } else if (currentPosVolts > LO_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
