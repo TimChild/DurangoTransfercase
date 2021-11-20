@@ -28,13 +28,17 @@ const int SW_OPEN_LOW = 19000;
 const float SW_DEBOUNCE_S = 0.25;
 const float SW_N_PRESS_TIME_S = 3.0;
 
-
-// Mode sensor voltages
+// Mode sensor voltages (NV244)
 // Positions {0, 1, 2, 3} == 4HIGH, AWD, Neutral, 4LO
 const float LOCK_V = 4.31;
 const float AWD_V = 3.4;
 const float N_V = 2.5;
 const float LO_V = 1.54;
+const float LOW_LIMIT = 0.50;
+const float HIGH_LIMIT = 4.51;
+const float POSITION_TOLERANCE = 0.1;  // Stop shifting once within this distance of target voltage
+const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> outside of ideal range when returning current motor position
+// NV244 manual:
 // const float LOCK_LOW = 4.26;
 // const float LOCK_HIGH = 4.36;
 // const float AWD_LOW = 3.36;
@@ -43,9 +47,7 @@ const float LO_V = 1.54;
 // const float N_HIGH = 2.54;
 // const float LO_LOW = 1.48;
 // const float LO_HIGH = 1.57;
-const float LOW_LIMIT = 0.50;
-const float HIGH_LIMIT = 4.51;
-// NV144: 
+// NV144 manual: 
 // 4HI = 4.19 -> 4.35
 // AWD = 0.45 -> 0.55
 
@@ -56,8 +58,6 @@ const byte MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before s
 const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back to the last valid state after a failed shift
 // const float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
 const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
-const float POSITION_TOLERANCE = 0.01;  // Stop shifting once within this distance of target voltage
-float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> outside of ideal range when returning current motor position
 
 // From Service Manual:
 // "Current attempt limit values are 25 transitions in 30 seconds and default mode
