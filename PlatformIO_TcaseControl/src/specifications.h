@@ -52,11 +52,10 @@ const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> out
 // AWD = 0.45 -> 0.55
 
 // Shift parameters
-// float MAX_SHIFT_TIME_S = 1.0;  // Max time to try shifting per position change
-const float MAX_SHIFT_TIME_S = 3.0;  // Max time to try shifting per position change
+float MAX_SHIFT_TIME_S = 2.0;  // Max time to try shifting  // Manual specifies 1.0s per shift position
+// const float MAX_SHIFT_TIME_S = 3.0;  // Max time to try shifting per position change
 const byte MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before shifting back
 const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back to the last valid state after a failed shift
-// const float INTERRUPT_TIME_S = 0.2;  // Time to wait before reversing direction of failed shift
 const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 
 // From Service Manual:
@@ -71,11 +70,6 @@ const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 // Note: Service Manual definces some very complicated procedures for shifting in and out of Neutral if shifts are blocked.
 // I think we will stick to some more simple procedures
 
-
-// Drift correction parameters
-// const float CHECK_INTERVAL_S = 2.0; // Time between checks of Drift
-
-
 // PWM parameters
 const int PWM_FREQUENCY = 490; // FCM uses 100Hz PWM Frequency but Arduino uses 490Hz by default (not worth changing)
 const float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "specified rate"):
@@ -84,15 +78,11 @@ const float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "speci
 // Not specified in manual (says "specified rate based upon difference between desired position and current position")
 // float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 // const float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
-const byte PWM_MAX_POWER = 200; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
-const byte PWM_MIN_POWER = 25; // Not specified in manual - probably need some minimum power to actually make motor move
-
-// Shift motor braking parameters (apply 12V to both shift motor wires)
-// const byte STATIC_BRAKE_POSITIONS[] = {1, 3};  // Static brake in AWD and 4LO
+const byte PWM_MAX_POWER = 255; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
+const byte PWM_MIN_POWER = 35; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift Brake Release time
 const byte BRAKE_RELEASE_TIME_S = 1;  // should be between 2 - 5 seconds before and after
 
-
-// Other non-service manual values
+// Memory address to store last valid position in (Rated for 100,000 re-writes)
 const byte EEPROM_POSITION_ADDRESS = 0;
