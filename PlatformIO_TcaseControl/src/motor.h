@@ -360,7 +360,14 @@ class Motor {
                 if (checkShiftWorking(maxAttempts) > 0) {
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
                 } else {  // Failed to shift
-                    tryRecoverBadShift(desiredPos);
+                    if (getPosition() == desiredPos) {
+                        // stopMotor();
+                        output->setMainMessage(F("Didn't reach target V, but in desired Position"));
+                        delay(2000);
+                        break;
+                    } else {
+                        tryRecoverBadShift(desiredPos);
+                    }
                     break;
                 }
                 output->setMotorVolts(readPositionVolts());
