@@ -31,17 +31,20 @@ const float SW_N_PRESS_TIME_S = 3.0;
 
 // Mode sensor voltages
 // Positions {0, 1, 2, 3} == 4HIGH, AWD, Neutral, 4LO
-const float LOCK_LOW = 4.26;
-const float LOCK_HIGH = 4.36;
-const float AWD_LOW = 3.36;
-const float AWD_HIGH = 3.44;
-const float N_LOW = 2.45;
-const float N_HIGH = 2.54;
-const float LO_LOW = 1.48;
-const float LO_HIGH = 1.57;
+const float LOCK_V = 4.31;
+const float AWD_V = 3.4;
+const float N_V = 2.5;
+const float LO_V = 1.54;
+// const float LOCK_LOW = 4.26;
+// const float LOCK_HIGH = 4.36;
+// const float AWD_LOW = 3.36;
+// const float AWD_HIGH = 3.44;
+// const float N_LOW = 2.45;
+// const float N_HIGH = 2.54;
+// const float LO_LOW = 1.48;
+// const float LO_HIGH = 1.57;
 const float LOW_LIMIT = 0.50;
 const float HIGH_LIMIT = 4.51;
-// TODO: Note to self, shifting from 4LO to AWD first shifts from 4LO to 4HIGH then back to AWD
 // NV144: 
 // 4HI = 4.19 -> 4.35
 // AWD = 0.45 -> 0.55

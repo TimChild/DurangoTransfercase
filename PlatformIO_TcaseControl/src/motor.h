@@ -127,26 +127,36 @@ class Motor {
             return volts;
         }
 
-        float getPositionLowVolts(int position) {
-            // Return low voltage of position
-            switch (position){
-                case 0: return LOCK_LOW;
-                case 1: return AWD_LOW;
-                case 2: return N_LOW;
-                case 3: return LO_LOW;
-                default: return LOW_LIMIT; // TODO: Is this the right thing to return in this case?
-            }
+        // float getPositionLowVolts(int position) {
+        //     // Return low voltage of position
+        //     switch (position){
+        //         case 0: return LOCK_LOW;
+        //         case 1: return AWD_LOW;
+        //         case 2: return N_LOW;
+        //         case 3: return LO_LOW;
+        //         default: return LOW_LIMIT; // TODO: Is this the right thing to return in this case?
+        //     }
 
-        }
+        // }
 
-        float getPositionHighVolts(int position) {
-            // Return high voltage of position
+        // float getPositionHighVolts(int position) {
+        //     // Return high voltage of position
+        //     switch (position){
+        //         case 0: return LOCK_HIGH;
+        //         case 1: return AWD_HIGH;
+        //         case 2: return N_HIGH;
+        //         case 3: return LO_HIGH;
+        //         default: return HIGH_LIMIT; // TODO: Is this the right thing to return in this case?
+        //     }
+        // }
+
+        float getPositionVolts(int position) {
             switch (position){
-                case 0: return LOCK_HIGH;
-                case 1: return AWD_HIGH;
-                case 2: return N_HIGH;
-                case 3: return LO_HIGH;
-                default: return HIGH_LIMIT; // TODO: Is this the right thing to return in this case?
+                case 0: return LOCK_V;
+                case 1: return AWD_V;
+                case 2: return N_V;
+                case 3: return LO_V;
+                default: return AWD_V; // Safest to assume AWD if bad position passed
             }
         }
 
@@ -174,8 +184,7 @@ class Motor {
             // increase power if not at max and not close to desired pos
             // decrease power if close to desired pos
 
-            // If it has been longer than 1 PWM cycle since last update
-            float timeSinceLastSet = min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0; 
+            float timeSinceLastSet = min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0;  // Smaller of true time elapsed or 50ms
 
             DEBUG_PRINT(F("Motor>stepShiftSpeed: T=")); DEBUG_PRINT(timeSinceLastSet); DEBUG_PRINT(F(", speed=")); DEBUG_PRINT(motorSpeed); DEBUG_PRINT(F(", direction=")); DEBUG_PRINTLN(direction); 
             if (timeSinceLastSet*PWM_FREQUENCY > 1.0) {  // More than 1 full duty cycle
@@ -183,10 +192,9 @@ class Motor {
                     motorSpeed = 0.0;
                     stopMotor();
                     delay(100);  // Enforce some delay
-                    timeSinceLastSet = 0.05;  // Don't want to step really fast because it's been a long time since last motor set time  TODO: Think about if this is necessary
+                    timeSinceLastSet = 0.05;  // Don't want to step really fast because it's been a long time since last motor set time
                 }
                 motorDirection = direction;
-
                 updateMotorSpeed(desiredPos, timeSinceLastSet);
             }
         }
@@ -206,9 +214,9 @@ class Motor {
                 maxAllowedSpeed = 0.01;  // I.e. min speed
             }
 
-            float newSpeed = min(1.0, motorSpeed + min(1.0, PWM_ACCELERATION * timeElapsed));
+            float newSpeed = motorSpeed + PWM_ACCELERATION * timeElapsed;  // New porportional speed
             newSpeed = min(maxAllowedSpeed, newSpeed);
-            if (abs(newSpeed - motorSpeed) > 0.0001) {
+            if (abs(newSpeed - motorSpeed) > 0.0001) {  // If speed change required
                 motorSpeed = newSpeed;
                 DEBUG_PRINT(F("Motor>updateMotorSpeed: newSpeed = ")); DEBUG_PRINTLN(newSpeed);
                 setMotor();
@@ -226,7 +234,7 @@ class Motor {
                 int realDir, realPwm;
                 realDir = (motorDirection > 0) ? 1 : 0;
                 realPwm = max(PWM_MAX_POWER*motorSpeed, PWM_MIN_POWER);
-                snprintf(m_buf, sizeof(m_buf), "Motor>setMotor: Dir = %i, Speed: %i", realDir, realPwm); DEBUG_PRINTLN(m_buf);  // DEBUGGING
+                // snprintf(m_buf, sizeof(m_buf), "Motor>setMotor: Dir = %i, Speed: %i", realDir, realPwm); DEBUG_PRINTLN(m_buf);  // DEBUGGING
                 digitalWrite(dirPin, realDir);
                 analogWrite(pwmPin, realPwm);
             } else { // Stop motor
@@ -240,14 +248,16 @@ class Motor {
         float desiredPositionDistance(int desiredPos) {
             // Return distance to desired position
             float currentPosVolts = readPositionVolts();
-            float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
+            // float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
+            float desiredPosVolts = getPositionVolts(desiredPos);
             return min(1.0, abs(currentPosVolts - desiredPosVolts));
         }
 
         int desiredPositionDirection(int desiredPos) {
             // Return direction of desired position from current position
             float currentPosVolts = readPositionVolts();
-            float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
+            // float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
+            float desiredPosVolts = getPositionVolts(desiredPos);
 
             if (currentPosVolts <= desiredPosVolts) {
                 DEBUG_PRINTLN(F("Motor>desiredPositionDirection: direction = -1"));
@@ -318,14 +328,22 @@ class Motor {
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range
-            } else if (currentPosVolts > LOCK_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (currentPosVolts > LOCK_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_V + MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURHI;
-            } else if (currentPosVolts > AWD_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (currentPosVolts > AWD_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_V + MOTOR_DRIFT_TOLERANCE_V) {
                 position = AWD;
-            } else if (currentPosVolts > N_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (currentPosVolts > N_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_V + MOTOR_DRIFT_TOLERANCE_V) {
                 position = NEUTRAL;
-            } else if (currentPosVolts > LO_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (currentPosVolts > LO_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_V + MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURLO;
+            // } else if (currentPosVolts > LOCK_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            //     position = FOURHI;
+            // } else if (currentPosVolts > AWD_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            //     position = AWD;
+            // } else if (currentPosVolts > N_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            //     position = NEUTRAL;
+            // } else if (currentPosVolts > LO_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
+            //     position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
             }
