@@ -37,7 +37,7 @@ class SelectorSwitch {
             float Vin = 5.0;
             float Vout = 0.0;
             for (int i=0; i<10; i++) {
-                Vout += 5.0*analogRead(modeSelectPin)/1024;
+                Vout += Vin*analogRead(modeSelectPin)/1024;  //~100us per read
             } 
             Vout = Vout/10.0;  // Because of averaging
             // float Vout = 5.0/1024*analogRead(modeSelectPin);
