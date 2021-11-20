@@ -53,8 +53,7 @@ const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> out
 
 // Shift parameters
 float MAX_SHIFT_TIME_S = 2.0;  // Max time to try shifting  // Manual specifies 1.0s per shift position
-// const float MAX_SHIFT_TIME_S = 3.0;  // Max time to try shifting per position change
-const byte MAX_SINGLE_SHIFT_ATTEMPTS = 3;  // Max times to try shifting before shifting back
+const byte MAX_SINGLE_SHIFT_ATTEMPTS = 2;  // Max times to try shifting to desired position before shifting back
 const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back to the last valid state after a failed shift
 const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 

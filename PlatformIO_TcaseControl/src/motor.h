@@ -188,7 +188,6 @@ class Motor {
             // Update motor power based on current state.
             // increase power if not at max and not close to desired pos
             // decrease power if close to desired pos
-
             float timeSinceLastSet = min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0;  // Smaller of true time elapsed or 50ms
 
             DEBUG_PRINT(F("Motor>stepShiftSpeed: T=")); DEBUG_PRINT(timeSinceLastSet); DEBUG_PRINT(F(", speed=")); DEBUG_PRINT(motorSpeed); DEBUG_PRINT(F(", direction=")); DEBUG_PRINTLN(direction); 

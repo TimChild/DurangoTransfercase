@@ -110,8 +110,10 @@ void setup() {
     }
     waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
   }
+  if (selector.getSelection() != motor.getValidPosition()) {
+    waitUntilReset(); // Switch doesn't match motor at startup, wait for input before starting main loop
+  }
 }
-
 
 
 void testSwitch() {
@@ -126,11 +128,6 @@ void normal() {
 
   desiredPosition = selector.getSelection();
   if (motor.getPosition() != desiredPosition) {
-    // motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
-    // if (motor.getPosition() != desiredPosition) {
-    //   DEBUG_PRINTLN(F("Main: Failed to reach position"));
-    //   waitUntilReset();
-    // }
     success = motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
     if (success) {
       output.setMainMessage(F("Shift completed successfully"));
@@ -140,7 +137,6 @@ void normal() {
       DEBUG_PRINTLN(F("Main: Failed to reach position"));
       waitUntilReset();
     }
-
   }
 }
 
