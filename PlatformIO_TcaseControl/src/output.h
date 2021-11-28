@@ -20,8 +20,12 @@
 // const int SCREEN_HEIGHT = 128;
 const int SCREEN_WIDTH = 240;
 const int SCREEN_HEIGHT = 240;
+#define TOP_MARGIN 5
+#define RIGHT_MARGIN 5
+#define BOTTOM_MARGIN 5
+#define LEFT_MARGIN 20
 const byte SF = 2;  // Overall Scale Factor for display (i.e. 1 for 128x128px, 2 for 240x240px to make things look similar size)
-const int maxChars = SCREEN_WIDTH/6/SF;  // Max no. characters per row on screen
+const int maxChars = (SCREEN_WIDTH-RIGHT_MARGIN-LEFT_MARGIN)/6/SF;  // Max no. characters per row on screen
 
 const uint16_t PINK = 0xF811;
 const uint16_t BLUE_GREY = 0x3B9C;
@@ -136,17 +140,17 @@ class ScreenOut {
             tft->setTextColor(textColor);
             tft->setTextWrap(false);
 
-            tft->drawRoundRect(0, 0, SCREEN_WIDTH/2, 70*SF, 4*SF, boxColor);  // For Switch
-            tft->setCursor(4*SF, 2*SF);
+            tft->drawRoundRect(LEFT_MARGIN, TOP_MARGIN, SCREEN_WIDTH/2-LEFT_MARGIN, 70*SF-TOP_MARGIN, 4*SF, boxColor);  // For Switch
+            tft->setCursor(LEFT_MARGIN+4*SF, TOP_MARGIN+2*SF);
             tft->print(F("Switch"));
-            tft->drawFastHLine(4*SF, 17*SF, SCREEN_WIDTH/2 - 8*SF, boxColor);
+            tft->drawFastHLine(LEFT_MARGIN+4*SF, TOP_MARGIN+17*SF, SCREEN_WIDTH/2-LEFT_MARGIN - 8*SF, boxColor);
 
-            tft->drawRoundRect(SCREEN_WIDTH/2, 0*SF, SCREEN_WIDTH/2, 70*SF, 4*SF, boxColor);  // For Motor
-            tft->setCursor(SCREEN_WIDTH/2+4*SF, 2*SF);
+            tft->drawRoundRect(SCREEN_WIDTH/2, TOP_MARGIN+0*SF, SCREEN_WIDTH/2-RIGHT_MARGIN, 70*SF-TOP_MARGIN, 4*SF, boxColor);  // For Motor
+            tft->setCursor(SCREEN_WIDTH/2+4*SF, TOP_MARGIN+2*SF);
             tft->print(F("Motor"));
-            tft->drawFastHLine(SCREEN_WIDTH/2+4*SF, 17*SF, SCREEN_WIDTH/2 - 8*SF, boxColor);
+            tft->drawFastHLine(SCREEN_WIDTH/2+4*SF, 17*SF+TOP_MARGIN, SCREEN_WIDTH/2 - 8*SF - RIGHT_MARGIN, boxColor);
 
-            tft->drawRoundRect(0, 70*SF, SCREEN_WIDTH, SCREEN_HEIGHT-70*SF, 4*SF, boxColor);  // For extra text
+            tft->drawRoundRect(LEFT_MARGIN+0, 70*SF+TOP_MARGIN, SCREEN_WIDTH-LEFT_MARGIN-RIGHT_MARGIN, SCREEN_HEIGHT-70*SF-BOTTOM_MARGIN-TOP_MARGIN, 4*SF, boxColor);  // For extra text
 
             currentLayout = 1;
         }
@@ -222,15 +226,15 @@ class ScreenOut {
             if (switchPos != currentSwitchPos) {
                 DEBUG_PRINT(F("ScreenOut>WriteNormalValues: switchPos = ")); DEBUG_PRINT(switchPos); DEBUG_PRINTLN("");
                 posToStr(buffer, switchPos);
-                writeBlock(buffer, 4*SF, 25*SF, 2*SF, SCREEN_WIDTH/2-8*SF, 1);
+                writeBlock(buffer, LEFT_MARGIN+4*SF, 25*SF+TOP_MARGIN, 2*SF, SCREEN_WIDTH/2-8*SF-LEFT_MARGIN, 1);
                 currentSwitchPos = switchPos;
             }
 
             if (motorPos != currentMotorPos || motorPosValid != currentMotorPosValid) {
                 posToStr(buffer, motorPos);
-                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 25*SF, 2*SF, SCREEN_WIDTH/2-8*SF, 1);
+                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 25*SF+TOP_MARGIN, 2*SF, SCREEN_WIDTH/2-8*SF-RIGHT_MARGIN, 1);
                 if (!motorPosValid) {
-                    strikeThrough(SCREEN_WIDTH/2+4*SF, 25*SF, SCREEN_WIDTH/2-8*SF, 2*SF);
+                    strikeThrough(SCREEN_WIDTH/2+4*SF, 25*SF+TOP_MARGIN, SCREEN_WIDTH/2-8*SF-RIGHT_MARGIN, 2*SF);
                 }
                 currentMotorPos = motorPos;
                 currentMotorPosValid = motorPosValid;
@@ -238,7 +242,7 @@ class ScreenOut {
 
             if (abs(switchOhms - currentSwitchOhms) > 15) {
                 sprintf(buffer, "%d \351", switchOhms);
-                writeBlock(buffer, 4*SF, 50*SF, 1*SF, SCREEN_WIDTH/2-8*SF, 1);
+                writeBlock(buffer, LEFT_MARGIN+4*SF, TOP_MARGIN+50*SF, 1*SF, SCREEN_WIDTH/2-8*SF - LEFT_MARGIN, 1);
                 currentSwitchOhms = switchOhms;
             }
 
@@ -246,12 +250,12 @@ class ScreenOut {
                 char temp[6];
                 dtostrf(motorVolts, 4, 3, temp);
                 sprintf(buffer, "%s V", temp);
-                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 50*SF, 1*SF, SCREEN_WIDTH/2-8*SF, 1);
+                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 50*SF+TOP_MARGIN, 1*SF, SCREEN_WIDTH/2-8*SF - RIGHT_MARGIN, 1);
                 currentMotorVolts = motorVolts;
             }
 
             if (strcmp(mainText, currentMainText) != 0) {
-                writeBlock(mainText, 4*SF, 75*SF, 1*SF, SCREEN_WIDTH-8*SF, 4);
+                writeBlock(mainText, LEFT_MARGIN+4*SF, 75*SF+TOP_MARGIN, 1*SF, SCREEN_WIDTH-8*SF-LEFT_MARGIN-RIGHT_MARGIN, 4);
                 snprintf(currentMainText, maxChars*4, mainText);
             }
 
