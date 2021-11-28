@@ -53,8 +53,7 @@ Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &ou
 int currentPosition = -1;  // Current position of Motor
 byte desiredPosition = 1;
   
-void bootTest() {
-  // TODO: Remove this fn, this is just for making sure scripts start running etc
+void blink() {
   pinMode(LED_BUILTIN, OUTPUT);
   for (byte i = 0; i < 15; i++) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -83,36 +82,69 @@ void waitUntilReset() {
   output.setMainMessage(F(""));
 }
 
+int analogDisconected(const uint8_t pin) {
+  int disconnected = 0;
+  pinMode(pin, INPUT_PULLUP);
+  delay(5);
+  analogRead(pin);  // Apparently first few reads after switching mode can be bad
+  analogRead(pin);
+  analogRead(pin);
+  if (analogRead(pin) > 1000) {
+    disconnected = 1;
+  }
+  pinMode(pin, INPUT);
+  delay(5);
+  analogRead(pin);  // Apparently first few reads after switching mode can be bad
+  analogRead(pin);
+  analogRead(pin);
+  return disconnected;
+}
+
 
 /**
  * Runs once at Arduino Startup
 */
 void setup() {
-  //////////////////////// DEBUG
-  Serial.begin(115200); 
-  DEBUG_PRINTLN(F("Main: Booting"));
-  //////////////////////// End of DEBUG
+  #ifdef DEBUG
+    Serial.begin(115200); 
+    DEBUG_PRINTLN(F("Main: Booting"));
+  #endif
 
   output.begin();
-  delay(2000);
-
   motor.begin();
-  int startPos = motor.getPosition();
-  if (isValid(startPos) && startPos != NEUTRAL) {
-    selector.begin(0);
-  } else if (startPos == NEUTRAL) {
-    selector.begin(1);
-  } else {
-    if (motor.getValidPosition() != NEUTRAL) {
-      selector.begin(0); 
-    } else {
+
+  if (analogDisconected(motorModePin)) {
+    output.setMainMessage(F("Motor Disconnected"));
+    delay(2000);
+    while (analogDisconected(motorModePin)) {
+      selector.checkState();
+      motor.getPosition();
+    }
+    output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
+    delay(60000);
+  }
+
+  // int startPos = motor.getPosition();
+  int startPos = FOURLO;
+  if (isValid(startPos)) {
+    if (startPos == NEUTRAL) {
       selector.begin(1);
+    } else {
+      selector.begin(0);
+    }
+  } else {
+    if (motor.getValidPosition() == NEUTRAL) {
+      selector.begin(1); 
+    } else {
+      selector.begin(0);
     }
     waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
   }
-  if (selector.getSelection() != motor.getValidPosition()) {
-    waitUntilReset(); // Switch doesn't match motor at startup, wait for input before starting main loop
+
+  if (selector.getSelection() != motor.getPosition()) {
+    waitUntilReset(); // Prevent a shift occuring immediately after startup without input
   }
+
 }
 
 
