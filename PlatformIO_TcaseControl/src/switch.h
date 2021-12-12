@@ -35,7 +35,6 @@ class SelectorSwitch {
         int readSwitchPositionOhms() {
             // Returns resistance of switch
             float Vin = 5.0;
-            float Vout = 0.0;
             ///// Basic Averaging /////////////////
             // for (int i=0; i<10; i++) {
             //     Vout += Vin*analogRead(modeSelectPin)/1024;  //~100us per read
@@ -43,14 +42,14 @@ class SelectorSwitch {
             // Vout = Vout/10.0;  // Because of averaging
             ///////////////////////////////////////
             ////// Exponential Averaging /////////// (less prone to spikes)
-            Vout = analogRead(modeSelectPin);
+            int V = analogRead(modeSelectPin);
             const float alpha = 0.1;  // Lower more stable but slower to vary
             for (int i=0; i<10; i++) {
-                Vout = (alpha*analogRead(modeSelectPin)+(1-alpha)*Vout);
+                V = (alpha*analogRead(modeSelectPin)+(1-alpha)*V);
             }
-            Vout = Vout/1024;
+            float Vout = V/1024.0;
             /////////////////////////////////////////
-            int resistance = FIXED_RESISTOR * (Vin - Vout) / Vout - 1000;  // -1000 because of inline 1kOhm resistor on 5V output of cluster (using cluster 5V)
+            int resistance = round(FIXED_RESISTOR * (Vin - Vout) / Vout - 1000);  // -1000 because of inline 1kOhm resistor on 5V output of cluster (using cluster 5V)
             // int resistance = 5000;
             output->setSwitchResistance(resistance); 
             return resistance;
