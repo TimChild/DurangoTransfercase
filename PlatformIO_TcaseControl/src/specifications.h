@@ -30,11 +30,11 @@ const float SW_N_PRESS_TIME_S = 3.0;
 
 // Mode sensor voltages (NV244)
 // Positions {0, 1, 2, 3} == 4HIGH, AWD, Neutral, 4LO
-const float LOCK_V = 4.31;
-const float AWD_V = 3.4;
-const float N_V = 2.5;
-const float LO_V = 1.54;
-const float LOW_LIMIT = 0.50;
+const float LOCK_V = 4.31;      //Spec: 4.31
+const float AWD_V = 3.2;        //Spec: 3.4; 
+const float N_V = 2.5;          //Spec: 2.5;
+const float LO_V = 1.54;        //Spec: 1.54;
+const float LOW_LIMIT = 0.50;   
 const float HIGH_LIMIT = 4.51;
 const float POSITION_TOLERANCE = 0.1;  // Stop shifting once within this distance of target voltage
 const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> outside of ideal range when returning current motor position
