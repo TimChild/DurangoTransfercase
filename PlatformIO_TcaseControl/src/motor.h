@@ -120,22 +120,22 @@ class Motor {
          * Read position of mode sensor in Volts
          */
         float readPositionVolts() {
-            // float volts = analogRead(modePin)*5.0/1024.0;
+            analogRead(modePin); // Throw away reading to make sure the next ones aren't affected by previous readings
             float Vin = 5.0;
             float volts = 0.0;
             // Basic Average ////////
-            // for (int i=0; i<10; i++) {
-            //     volts += Vin*analogRead(modePin)/1024;  // ~100us per read
-            // } 
-            // volts = volts/10.0;  // Because of averaging
-            /////////////////////////
-            // Exponetial Average ///////////// (less prone to spikes)
-            volts = analogRead(modePin);
-            const float alpha = 0.1;  // Lower more stable but slower to vary
             for (int i=0; i<10; i++) {
-                volts = (alpha*analogRead(modePin)+(1-alpha)*volts);
-            }
-            volts = Vin*volts/1024;
+                volts += Vin*analogRead(modePin)/1024;  // ~100us per read
+            } 
+            volts = volts/10.0;  // Because of averaging
+            ///////////////////////
+            // Exponetial Average ///////////// (less prone to spikes)
+            // volts = analogRead(modePin);
+            // const float alpha = 0.1;  // Lower more stable but slower to vary
+            // for (int i=0; i<10; i++) {
+            //     volts = (alpha*analogRead(modePin)+(1-alpha)*volts);
+            // }
+            // volts = Vin*volts/1024;
             //////////////////////////////////
             output->setMotorVolts(volts);
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);

@@ -101,16 +101,14 @@ int analogDisconected(const uint8_t pin) {
 }
 
 
-/**
- * Runs once at Arduino Startup
-*/
-void setup() {
+void normal_setup() {
   #ifdef DEBUG
     Serial.begin(115200); 
     DEBUG_PRINTLN(F("Main: Booting"));
   #endif
-
+  randomSeed(analogRead(A5));  // Makes random() change between boots
   output.begin();
+  delay(1000); // Some time for output bootup display to show
   motor.begin();
 
   if (analogDisconected(motorModePin)) {
@@ -144,7 +142,21 @@ void setup() {
   if (selector.getSelection() != motor.getPosition()) {
     waitUntilReset(); // Prevent a shift occuring immediately after startup without input
   }
+}
 
+void readOnly_setup() {
+  randomSeed(analogRead(A5));  // Makes random() change between boots
+  output.begin();
+  motor.begin();
+  selector.begin(0);
+}
+
+/**
+ * Runs once at Arduino Startup
+*/
+void setup() {
+  // normal_setup();
+  readOnly_setup();
 }
 
 
@@ -173,12 +185,20 @@ void normal() {
 }
 
 
+void readOnly() {
+    output.setMainMessage(F("Read Only Mode"));
+    selector.getSelection();
+    motor.getPosition();
+    delay(500);
+}
+
 /**
  * Runs repeatedly after Arduino setup()
  */
 void loop() {
   // testSwitch();
-  normal();
+  // normal();
+  readOnly();
 }
 
 
