@@ -51,7 +51,7 @@ class SelectorSwitch {
             // }
             // float Vout = V/1024.0;
             /////////////////////////////////////////
-            int resistance = round(FIXED_RESISTOR * (Vin - Vout) / Vout - 1000);  // -1000 because of inline 1kOhm resistor on 5V output of cluster (using cluster 5V)
+            int resistance = round(FIXED_RESISTOR * (Vin - Vout) / Vout - 1250);  // -const because of inline resistor on 5V output of cluster (using cluster 5V)
             // int resistance = 5000;
             output->setSwitchResistance(resistance); 
             return resistance;
