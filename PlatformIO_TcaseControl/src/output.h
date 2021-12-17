@@ -240,7 +240,7 @@ class ScreenOut {
                 currentMotorPosValid = motorPosValid;
             }
 
-            if (abs(switchOhms - currentSwitchOhms) > 15) {
+            if (abs((float)switchOhms/currentSwitchOhms - 1.0) > 0.015) {  // If changes by more than X%
                 sprintf(buffer, "%d \351", switchOhms);
                 writeBlock(buffer, LEFT_MARGIN+4*SF, TOP_MARGIN+50*SF, 1*SF, SCREEN_WIDTH/2-8*SF - LEFT_MARGIN, 1);
                 currentSwitchOhms = switchOhms;
