@@ -15,7 +15,7 @@ const int SW_N_LOCK_LOW = 190;
 const int SW_N_LOCK_HIGH = 216;
 const int SW_N_LO_LOW = 199;
 const int SW_N_LO_HIGH = 226;
-const int SW_AWD_LOW = 1159;
+const int SW_AWD_LOW = 1050;  //Spec = 1159;
 const int SW_AWD_HIGH = 1287;
 const int SW_LOCK_LOW = 2259;
 const int SW_LOCK_HIGH = 2503;
