@@ -320,7 +320,6 @@ class Motor {
             , pwmPin(pwmPin)
             , brakeReleasePin(brakeReleasePin)
             , modePin(modePin)
-            // , vOutPin(vOutPin)
             , output(out)
         {
         }
@@ -329,8 +328,8 @@ class Motor {
             pinMode(dirPin, OUTPUT);
             pinMode(pwmPin, OUTPUT);
             pinMode(brakeReleasePin, OUTPUT);
-            pinMode(modePin, INPUT);
-            // pinMode(vOutPin, INPUT);
+            // pinMode(modePin, INPUT);
+            pinMode(modePin, INPUT_PULLUP);  // Checking that the ADC pin is not shorted to the switch 
 
             lastValidPos = readEEPROMposition();
             currentPos = getPosition();
