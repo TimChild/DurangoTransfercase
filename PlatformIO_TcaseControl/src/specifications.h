@@ -8,8 +8,8 @@
 // All for NV244 transfercase
 
 // Switch resistance specs
-const int SW_SHORTED_HIGH = 150;
-const int SW_N_AWD_LOW = 176;
+const int SW_SHORTED_HIGH = 0; // Spec = 150;  // Since I subtract an assumed resistance inline with 5V, resistance will be negative for short to ground
+const int SW_N_AWD_LOW = 20; // Spec = 176;
 const int SW_N_AWD_HIGH = 200;
 const int SW_N_LOCK_LOW = 190;
 const int SW_N_LOCK_HIGH = 216;
