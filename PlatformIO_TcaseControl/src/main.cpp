@@ -155,8 +155,8 @@ void readOnly_setup() {
  * Runs once at Arduino Startup
 */
 void setup() {
-  // normal_setup();
-  readOnly_setup();
+  normal_setup();
+  // readOnly_setup();
 }
 
 
@@ -197,8 +197,8 @@ void readOnly() {
  */
 void loop() {
   // testSwitch();
-  // normal();
-  readOnly();
+  normal();
+  // readOnly();
 }
 
 

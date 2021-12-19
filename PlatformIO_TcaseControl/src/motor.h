@@ -286,7 +286,7 @@ class Motor {
             unsigned long waitStart = millis();
             while (shiftReady() != 1)
             {
-                delay(10);  // TODO: Change this to do other things while waiting? I.e. check switchPosition or update screen?
+                delay(10);  
                 if (shiftReady() == -1 || millis() - waitStart > 10*1000){
                     DEBUG_PRINTLN(F("Motor>waitForShiftReady: Shift not ready and needs to abort"));
                     output->setMainMessage(F("Shift not ready and needs to abort"));
@@ -390,9 +390,8 @@ class Motor {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
                 if (checkShiftWorking(maxAttempts) > 0) {
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
-                } else {  // Failed to shift
+                } else {  // Failed to shift (motor is stopped by checkShiftWorking)
                     if (getPosition() == desiredPos) {
-                        // stopMotor();
                         output->setMainMessage(F("Didn't reach target V, but in desired Position"));
                         delay(2000);
                         break;
