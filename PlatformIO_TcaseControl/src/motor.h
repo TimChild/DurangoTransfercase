@@ -100,6 +100,7 @@ class Motor {
                     addShiftAttempt();
                     delay(RETRY_TIME_S*1000);
                     output->setMainMessage(F("Retrying"));
+                    shiftStart = millis();
                     return 1;  // OK to continue trying to shift again
                 } else {
                     return -1; // Shift has failed, abort
@@ -125,7 +126,7 @@ class Motor {
             float volts = 0.0;
             // Basic Average ////////
             for (int i=0; i<10; i++) {
-                volts += Vin*analogRead(modePin)/1024;  // ~100us per read
+                volts += Vin*analogRead(modePin)/1023;  // ~100us per read
             } 
             volts = volts/10.0;  // Because of averaging
             ///////////////////////
@@ -135,7 +136,7 @@ class Motor {
             // for (int i=0; i<10; i++) {
             //     volts = (alpha*analogRead(modePin)+(1-alpha)*volts);
             // }
-            // volts = Vin*volts/1024;
+            // volts = Vin*volts/1023;
             //////////////////////////////////
             output->setMotorVolts(volts);
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);
@@ -270,7 +271,6 @@ class Motor {
         int desiredPositionDirection(int desiredPos) {
             // Return direction of desired position from current position
             float currentPosVolts = readPositionVolts();
-            // float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
             float desiredPosVolts = getPositionVolts(desiredPos);
 
             if (currentPosVolts <= desiredPosVolts) {
@@ -390,18 +390,23 @@ class Motor {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
                 if (checkShiftWorking(maxAttempts) > 0) {
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
-                } else {  // Failed to shift (motor is stopped by checkShiftWorking)
+                } else {  // Failed to shift 
+                    stopMotor();
                     if (getPosition() == desiredPos) {
                         output->setMainMessage(F("Didn't reach target V, but in desired Position"));
                         delay(2000);
                         break;
+                    // } 
+                    // else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
+                    //     shiftStart = millis();
+                    //     continue;
                     } else {
                         tryRecoverBadShift(desiredPos);
+                        break;
                     }
-                    break;
                 }
-                output->setMotorVolts(readPositionVolts());
             }
+            output->setMotorVolts(readPositionVolts());
             return endShift(desiredPos);
         }
 

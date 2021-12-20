@@ -39,7 +39,7 @@ class SelectorSwitch {
             ///// Basic Averaging /////////////////
             float Vout = 0.0;
             for (int i=0; i<10; i++) {
-                Vout += Vin*analogRead(modeSelectPin)/1024;  //~100us per read
+                Vout += Vin*analogRead(modeSelectPin)/1023;  //~100us per read
             } 
             Vout = Vout/10.0;  // Because of averaging
             ///////////////////////////////////////
@@ -49,7 +49,7 @@ class SelectorSwitch {
             // for (int i=0; i<10; i++) {
             //     V = (alpha*analogRead(modeSelectPin)+(1-alpha)*V);
             // }
-            // float Vout = V/1024.0;
+            // float Vout = V/1023.0;
             /////////////////////////////////////////
             int resistance = round(FIXED_RESISTOR * (Vin - Vout) / Vout - 1250);  // -const because of inline resistor on 5V output of cluster (using cluster 5V)
             // int resistance = 5000;
