@@ -89,7 +89,7 @@ int analogDisconected(const uint8_t pin) {
   analogRead(pin);  // Apparently first few reads after switching mode can be bad
   analogRead(pin);
   analogRead(pin);
-  if (analogRead(pin) > HIGH_LIMIT/5.0*1023) {
+  if (analogRead(pin) > 990) {  // ~990 -> 4.85V (4.93+ is detected when actually disconnected)
     disconnected = 1;
   }
   pinMode(pin, INPUT);
@@ -112,11 +112,14 @@ void normal_setup() {
   motor.begin();
 
   if (analogDisconected(motorModePin)) {
-    output.setMainMessage(F("Motor Disconnected"));
+    output.setMainMessage(F("Motor Disconnected: Waiting for reconnect"));
+    selector.begin(0);
     delay(2000);
     while (analogDisconected(motorModePin)) {
       selector.checkState();
+      delay(10);
       motor.getPosition();
+      delay(10);
     }
     output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
     delay(60000);

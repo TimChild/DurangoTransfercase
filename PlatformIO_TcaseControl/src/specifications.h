@@ -38,7 +38,7 @@ const float N_V = 2.5;          //Spec: 2.5;
 const float LO_V = 1.54;        //Spec: 1.54;
 const float LOW_LIMIT = 0.50;   
 const float HIGH_LIMIT = 4.51;
-const float POSITION_TOLERANCE = 0.1;  // Stop shifting once within this distance of target voltage
+const float POSITION_TOLERANCE = 0.05;  // Stop shifting once within this distance of target voltage
 const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> outside of ideal range when returning current motor position
 // NV244 manual:
 // const float LOCK_LOW = 4.26;
