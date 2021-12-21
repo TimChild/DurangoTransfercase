@@ -89,7 +89,8 @@ int analogDisconected(const uint8_t pin) {
   analogRead(pin);  // Apparently first few reads after switching mode can be bad
   analogRead(pin);
   analogRead(pin);
-  if (analogRead(pin) > HIGH_LIMIT/5.0*1023) {
+  // if (analogRead(pin) > HIGH_LIMIT/5.0*1023) {
+  if (analogRead(pin) > 1000) {
     disconnected = 1;
   }
   pinMode(pin, INPUT);

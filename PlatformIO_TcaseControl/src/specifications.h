@@ -32,7 +32,7 @@ const float SW_N_PRESS_TIME_S = 3.0;
 
 // Mode sensor voltages (NV244)
 // Positions {0, 1, 2, 3} == 4HIGH, AWD, Neutral, 4LO
-const float LOCK_V = 4.31;      //Spec: 4.31
+const float LOCK_V = 4.06;      //Spec: 4.31
 const float AWD_V = 3.2;        //Spec: 3.4; 
 const float N_V = 2.5;          //Spec: 2.5;
 const float LO_V = 1.54;        //Spec: 1.54;
@@ -56,7 +56,7 @@ const float MOTOR_DRIFT_TOLERANCE_V = 0.2;  // Allow motor to be up to <tol> out
 // Shift parameters
 float MAX_SHIFT_TIME_S = 2.0;  // Max time to try shifting  // Manual specifies 1.0s per shift position
 const byte MAX_SINGLE_SHIFT_ATTEMPTS = 2;  // Max times to try shifting to desired position before shifting back
-const byte MAX_RETURN_SHIFT_ATTEMPTS = 5;  // How many times to try getting back to the last valid state after a failed shift
+const byte MAX_RETURN_SHIFT_ATTEMPTS = 3;  // How many times to try getting back to the last valid state after a failed shift
 const float RETRY_TIME_S = 2.0;  // Time to wait before retrying a shift
 
 // From Service Manual:
@@ -79,8 +79,8 @@ const float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "speci
 // Not specified in manual (says "specified rate based upon difference between desired position and current position")
 // float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 // const float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
-const byte PWM_MAX_POWER = 255; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
-const byte PWM_MIN_POWER = 35; // Not specified in manual - probably need some minimum power to actually make motor move
+const byte PWM_MAX_POWER = 180; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
+const byte PWM_MIN_POWER = 50; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift Brake Release time
 const byte BRAKE_RELEASE_TIME_S = 1;  // should be between 2 - 5 seconds before and after

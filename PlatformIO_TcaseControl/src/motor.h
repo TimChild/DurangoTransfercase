@@ -95,7 +95,7 @@ class Motor {
             if (millis() - shiftStart > MAX_SHIFT_TIME_S*1000) { // If current shift attempt fails by timing out
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Max time exceeded, stopping"));  // DEBUGGING
                 stopMotor();
-                if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
+                if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS-1) {
                     output->setMainMessage(F("Shift attempt failed. Will retry"));
                     addShiftAttempt();
                     delay(RETRY_TIME_S*1000);
