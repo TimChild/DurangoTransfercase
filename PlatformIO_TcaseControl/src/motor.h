@@ -388,7 +388,7 @@ class Motor {
             DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance() = ")); DEBUG_PRINTLN(desiredPositionDistance(desiredPos));
             while (desiredPositionDistance(desiredPos) > POSITION_TOLERANCE) {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
-                if (checkShiftWorking(maxAttempts) > 0) {
+                if (checkShiftWorking(maxAttempts) > 0) { // TODO: Re-write this a little. CheckShiftWorking does more than what it says... 
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
                 } else {  // Failed to shift 
                     stopMotor();
@@ -396,7 +396,7 @@ class Motor {
                         output->setMainMessage(F("Didn't reach target V, but in desired Position"));
                         delay(2000);
                         break;
-                    // } 
+                    // }  // TODO: Add this back in after taking this behaviour out of checkShiftWorking
                     // else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
                     //     shiftStart = millis();
                     //     continue;
