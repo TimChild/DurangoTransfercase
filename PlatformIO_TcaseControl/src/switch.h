@@ -181,7 +181,7 @@ class SelectorSwitch {
             output->getMainMessage(messageBuffer, messageBufferLength);
             while (1) {  // Keep looping through this until N is pressed for duration_s
                 while (getSwitchPosition() != NEUTRAL) {
-                    motor->getPosition();
+                    motor.getPosition();
                     delay(10);
                 }
                 time = millis();
