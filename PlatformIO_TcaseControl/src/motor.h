@@ -341,22 +341,14 @@ class Motor {
             int position;
             if (currentPosVolts < LOW_LIMIT || currentPosVolts > HIGH_LIMIT) {
                 position = -2;  // Bad position and out of range
-            } else if (currentPosVolts > LOCK_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_V + MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (abs(currentPosVolts - LOCK_V) < MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURHI;
-            } else if (currentPosVolts > AWD_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_V + MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (abs(currentPosVolts - AWD_V) < MOTOR_DRIFT_TOLERANCE_V) {
                 position = AWD;
-            } else if (currentPosVolts > N_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_V + MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (abs(currentPosVolts - N_V) < MOTOR_DRIFT_TOLERANCE_V) {
                 position = NEUTRAL;
-            } else if (currentPosVolts > LO_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_V + MOTOR_DRIFT_TOLERANCE_V) {
+            } else if (abs(currentPosVolts - LO_V) < MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURLO;
-            // } else if (currentPosVolts > LOCK_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = FOURHI;
-            // } else if (currentPosVolts > AWD_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = AWD;
-            // } else if (currentPosVolts > N_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = NEUTRAL;
-            // } else if (currentPosVolts > LO_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
             }
