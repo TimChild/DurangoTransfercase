@@ -89,6 +89,12 @@ class Motor {
             }
             return false;
         }
+        
+        void endShiftNew() {
+            stopMotor();
+            delay(BRAKE_RELEASE_TIME_S*1000);
+            setBrake(ON);
+        }
 
         int checkShiftWorking() {
             // Returns 1 if shift is still OK, otherwise returns < 0 (i.e. in time limits, and not too many attempts)
@@ -134,29 +140,6 @@ class Motor {
             return volts;
         }
 
-        // float getPositionLowVolts(int position) {
-        //     // Return low voltage of position
-        //     switch (position){
-        //         case 0: return LOCK_LOW;
-        //         case 1: return AWD_LOW;
-        //         case 2: return N_LOW;
-        //         case 3: return LO_LOW;
-        //         default: return LOW_LIMIT; // TODO: Is this the right thing to return in this case?
-        //     }
-
-        // }
-
-        // float getPositionHighVolts(int position) {
-        //     // Return high voltage of position
-        //     switch (position){
-        //         case 0: return LOCK_HIGH;
-        //         case 1: return AWD_HIGH;
-        //         case 2: return N_HIGH;
-        //         case 3: return LO_HIGH;
-        //         default: return HIGH_LIMIT; // TODO: Is this the right thing to return in this case?
-        //     }
-        // }
-
         float getPositionVolts(int position) {
             switch (position){
                 case 0: return LOCK_V;
@@ -190,7 +173,7 @@ class Motor {
             // Update motor power based on current state.
             // increase power if not at max and not close to desired pos
             // decrease power if close to desired pos
-            float timeSinceLastSet = min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0;  // Smaller of true time elapsed or 50ms
+            float timeSinceLastSet = min(millis() - lastMotorSetTime, 50)/1000.0;  // Smaller of true time elapsed or 50ms
 
             DEBUG_PRINT(F("Motor>stepShiftSpeed: T=")); DEBUG_PRINT(timeSinceLastSet); DEBUG_PRINT(F(", speed=")); DEBUG_PRINT(motorSpeed); DEBUG_PRINT(F(", direction=")); DEBUG_PRINTLN(direction); 
             if (timeSinceLastSet*PWM_FREQUENCY > 1.0) {  // More than 1 full duty cycle
@@ -202,6 +185,34 @@ class Motor {
                 }
                 motorDirection = direction;
                 updateMotorSpeed(desiredPos, timeSinceLastSet);
+            }
+        }
+
+        void stepShiftSpeedNew(int direction, int distance) {
+            // Update motor power based on current state.
+            // increase power if not at max and not close to desired pos
+            // decrease power if close to desired pos
+            float timeSinceLastSet = min(millis() - lastMotorSetTime, 50)/1000.0;  // Smaller of true time elapsed or 50ms
+            float newSpeed;
+            if (timeSinceLastSet*PWM_FREQUENCY > 1.0) {  // More than 1 full duty cycle
+                if (motorDirection != 0 && direction != motorDirection) {  // Change of direction!! 
+                    motorSpeed = 0.0;
+                    stopMotor();
+                    delay(100);  // Enforce some delay
+                    timeSinceLastSet = 0.05;  // Don't want to step really fast because it's been a long time since last motor set time
+                }
+                motorDirection = direction;
+                newSpeed = min(1.0, motorSpeed + PWM_ACCELERATION * timeSinceLastSet);
+                if (distance < 0.5) {
+                    newSpeed = min(newSpeed, 0.5);
+                } else if (distance < 0.3) {
+                    newSpeed = min(newSpeed, 0.35);
+                } else if (distance < 0.1) {
+                    newSpeed = min(newSpeed, 0.2);
+                }
+                if (abs(newSpeed - motorSpeed) > 0.01) {
+                    setMotor();
+                }
             }
         }
 
@@ -362,9 +373,45 @@ class Motor {
             return position;
         }
 
+        bool attemptShiftv2(int desiredPos, int maxAttempts) {
+            if (waitForShiftReady() < 0) {
+                return false;  // Shift not ready and needs to be aborted
+            }
+            initializeShift();
+            int attempts = 0;
+            while(attempts < maxAttempts) {
+                if (desiredPosition == AWD ) {
+                    // Make some different conditions for different shift types, then try to shift motor to certain volts, then maybe back again?
+
+                }
+            }
+
+            endShiftNew();
+        }
+
+        bool motorToTargetVolts(int desiredV, int maxTimeMs) {
+            // Try move motor to desiredV (Note: shift should already be initialized)
+            unsigned long startTime = millis();
+
+            float currentVolts;
+            int direction;
+            float distance;
+            while (millis() - startTime < (unsigned long)maxTimeMs) {
+                currentVolts = readPositionVolts();
+                if (abs(desiredV - currentVolts) < POSITION_TOLERANCE) {
+                    stopMotor();
+                    return true;
+                } 
+                direction = (currentVolts < desiredV) ? -1 : 1;
+                distance = abs(currentVolts - desiredV);
+                stepShiftSpeedNew(direction, distance);
+            }
+            return false;
+        }
+
         bool attemptShift(int desiredPos, int maxAttempts) {
             if (waitForShiftReady() < 0) {
-                return -1;  // Shift not ready and needs to be aborted
+                return false;  // Shift not ready and needs to be aborted
             }
 
             initializeShift();
