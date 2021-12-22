@@ -65,7 +65,7 @@ void blink() {
 
 void waitUntilLongNpress() {
   output.setMainMessage(F("WARNING: Motor position is not valid. Hold N for 5s to reset"));
-  selector.waitForLongNpress(5.0);
+  selector.waitForLongNpress(5.0, &motor);
   output.setMainMessage(F(""));
 }
 
