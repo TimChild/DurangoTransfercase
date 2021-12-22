@@ -90,21 +90,12 @@ class Motor {
             return false;
         }
 
-        int checkShiftWorking(int maxAttempts) {
+        int checkShiftWorking() {
             // Returns 1 if shift is still OK, otherwise returns < 0 (i.e. in time limits, and not too many attempts)
             if (millis() - shiftStart > MAX_SHIFT_TIME_S*1000) { // If current shift attempt fails by timing out
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Max time exceeded, stopping"));  // DEBUGGING
                 stopMotor();
-                if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS-1) {
-                    output->setMainMessage(F("Shift attempt failed. Will retry"));
-                    addShiftAttempt();
-                    delay(RETRY_TIME_S*1000);
-                    output->setMainMessage(F("Retrying"));
-                    shiftStart = millis();
-                    return 1;  // OK to continue trying to shift again
-                } else {
-                    return -1; // Shift has failed, abort
-                }
+                return -1; // Shift has failed, abort
             } else {
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Shift OK to continue"));  // DEBUGGING
                 return 1; // Shift OK
@@ -380,7 +371,7 @@ class Motor {
             DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance() = ")); DEBUG_PRINTLN(desiredPositionDistance(desiredPos));
             while (desiredPositionDistance(desiredPos) > POSITION_TOLERANCE) {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
-                if (checkShiftWorking(maxAttempts) > 0) { // TODO: Re-write this a little. CheckShiftWorking does more than what it says... 
+                if (checkShiftWorking() > 0) { 
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
                 } else {  // Failed to shift 
                     stopMotor();
@@ -388,10 +379,13 @@ class Motor {
                         output->setMainMessage(F("Didn't reach target V, but in desired Position"));
                         delay(2000);
                         break;
-                    // }  // TODO: Add this back in after taking this behaviour out of checkShiftWorking
-                    // else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
-                    //     shiftStart = millis();
-                    //     continue;
+                    } else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS-1) {
+                        output->setMainMessage(F("Shift attempt failed. Will retry"));
+                        addShiftAttempt();
+                        delay(RETRY_TIME_S*1000);
+                        output->setMainMessage(F("Retrying"));
+                        shiftStart = millis();
+                        continue;
                     } else {
                         tryRecoverBadShift(desiredPos);
                         break;
