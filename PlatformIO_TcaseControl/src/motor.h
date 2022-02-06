@@ -15,6 +15,15 @@
 #define OFF 0
 #define ON 1
 
+#define LOCK_POS 0
+#define AWD_POS 1
+#define N_POS 2
+#define LO_POS 3
+#define MANUAL_POS 10
+
+#define TOWARD_4HI -1
+#define TOWARD_4LO 1
+
 char m_buf[100];  // DEBUGGING: string buffer to avoid use of String
 
 int readEEPROMposition() {
@@ -168,10 +177,11 @@ class Motor {
 
         float getPositionVolts(int position) {
             switch (position){
-                case 0: return LOCK_V;
-                case 1: return AWD_V;
-                case 2: return N_V;
-                case 3: return LO_V;
+                case LOCK_POS: return LOCK_V;
+                case AWD_POS: return AWD_V;
+                case N_POS: return N_V;
+                case LO_POS: return LO_V;
+                case MANUAL_POS: return 10.0;  // For manual override use (ensures distance to "desired" position stays large)
                 default: return AWD_V; // Safest to assume AWD if bad position passed
             }
         }
@@ -245,7 +255,7 @@ class Motor {
         }
 
         void setMotor() {
-            if (brakeState == OFF && motorSpeed > 0.0 && (motorDirection == 1 || motorDirection == -1)) {
+            if (brakeState == OFF && motorSpeed > 0.0 && (motorDirection == TOWARD_4LO || motorDirection == TOWARD_4HI)) {
                 int realDir, realPwm;
                 realDir = (motorDirection > 0) ? 1 : 0;
                 realPwm = max(PWM_MAX_POWER*motorSpeed, PWM_MIN_POWER);
@@ -273,12 +283,12 @@ class Motor {
             float currentPosVolts = readPositionVolts();
             float desiredPosVolts = getPositionVolts(desiredPos);
 
-            if (currentPosVolts <= desiredPosVolts) {
+            if (currentPosVolts <= desiredPosVolts) { // Direction toward 4HI
                 DEBUG_PRINTLN(F("Motor>desiredPositionDirection: direction = -1"));
-                return -1;  
-            } else {
+                return TOWARD_4HI;  
+            } else {  // Direction toward 4LO
                 DEBUG_PRINTLN(F("Motor>desiredPositionDirection: direction = 1"));
-                return 1;
+                return TOWARD_4LO;
             }
         }
 
@@ -410,6 +420,18 @@ class Motor {
             return endShift(desiredPos);
         }
 
+        void manualDrive(int direction) {
+            if (brakeState == ON) {
+                setBrake(OFF);
+            }
+            stepShiftSpeed(direction, MANUAL_POS);
+        }
+
+        void manualStop() {
+            stopMotor();
+            setBrake(ON);
+        }
+
         void testBrake(int ms) {
             setBrake(OFF);
             delay(ms);
@@ -417,8 +439,8 @@ class Motor {
         }
 
         void testMotorForward(int ms) {
-            output->setMainMessage(F("Testing Forward"));
-            motorDirection = 1;
+            output->setMainMessage(F("Testing toward 4LO"));
+            motorDirection = TOWARD_4LO;
             motorSpeed = 0.1;
             setBrake(OFF);
             delay(500);
@@ -431,8 +453,8 @@ class Motor {
         }
 
         void testMotorBackward(int ms) {
-            output->setMainMessage(F("Testing Backward"));
-            motorDirection = -1;
+            output->setMainMessage(F("Testing toward 4HI"));
+            motorDirection = TOWARD_4HI;
             motorSpeed = 0.1;
             setBrake(OFF);
             delay(500);

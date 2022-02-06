@@ -164,39 +164,7 @@ class ScreenOut {
             // tft->drawBitmap(0, 0, cat, 128, 128, PINK);
 
 
-            // const byte r = SCREEN_HEIGHT/2-20;
-            // const byte cx = SCREEN_WIDTH/2;
-            // const byte cy = SCREEN_HEIGHT/2+0.1*r;
-            // const uint16_t color = PINK;
-
-            // tft->fillScreen(ST7735_BLACK);
-            // tft->drawCircle(cx, cy, r, color);
-            // drawCatSymParts(1, r, cx, cy, color);
-            // drawCatSymParts(-1, r, cx, cy, color);
-
-            // // Nose
-            // tft->drawTriangle(cx-0.07*r, cy+0.1, cx+0.07*r, cy+0.1, cx, cy+0.2*r, color);
-
-            // // Mouth
-            // tft->startWrite();
-            // tft->drawCircleHelper(cx-0.2*r, cy+0.2*r, 0.2*r, 4, color);
-            // tft->drawCircleHelper(cx+0.2*r, cy+0.2*r, 0.2*r, 8, color);
-            // tft->endWrite();
         }
-
-        // void drawCatSymParts(const int sign, const byte r, const byte cx, const byte cy, const uint16_t color) {
-        //     // Ear
-        //     tft->drawLine(cx-0.866*r*sign, cy-0.5*r, cx-0.9*r*sign, cy-1.5*r, color);
-        //     tft->drawLine(cx-0.5*r*sign, cy-0.866*r, cx-0.9*r*sign, cy-1.5*r, color);
-
-        //     // Whiskers
-        //     tft->drawLine(cx-0.3*r*sign, cy-0.10*r+0.2*r, cx-1.3*r*sign, cy-0.2*r, color);
-        //     tft->drawLine(cx-0.3*r*sign, cy-0.0*r+0.2*r, cx-1.3*r*sign, cy+0.1*r, color);
-        //     tft->drawLine(cx-0.3*r*sign, cy+0.10*r+0.2*r, cx-1.3*r*sign, cy+0.4*r, color);
-
-        //     // Eyes
-        //     tft->drawRoundRect(cx-0.4*r*sign-0.15*r, cy-0.3*r-0.1*r, 0.3*r, 0.2*r, 0.1*r, color);
-        // }
 
 
     public:
@@ -277,12 +245,12 @@ class OtherOutputs {
         bool motorPosValid = true;
         float motorVolts = -1;
         int displayMode = 0;  // So screen can display different information based on selected mode
-        byte fakeSwitchState = AWD;
-        byte fakeMotorState = AWD;
+        // byte fakeSwitchState = AWD;
+        // byte fakeMotorState = AWD;
         // char motorMessage[33]; // Message from Motor
         ScreenOut screenOut;
-        uint8_t fakeSwitchPin;
-        uint8_t fakeMotorPin;
+        // uint8_t fakeSwitchPin;
+        // uint8_t fakeMotorPin;
 
         void writeDisplay() {
             // screenOut.writeScreen(mainMessage, switchPos, motorPos);
@@ -291,45 +259,47 @@ class OtherOutputs {
 
         void writeFakePinOuts() {
             // Set pin outs to trick the Car into thinking it's in a certain state
-            // TODO: Set pin outs (probably using pwm analog out with a lowpass filter?)
-            if (isValid(switchPos)) {
-                if (switchPos == AWD && fakeSwitchState != 0){
-                    digitalWrite(fakeSwitchPin, LOW);
-                    fakeSwitchState = 0;
-                } else if (switchPos != AWD && fakeSwitchState != 1) {
-                    digitalWrite(fakeSwitchPin, HIGH);
-                    fakeSwitchState = 1;
-                }
-            }
-            if (isValid(motorPos)) {
-                if (motorPos == AWD && fakeMotorState != 0){
-                    digitalWrite(fakeMotorPin, LOW);
-                    fakeMotorState = 0;
-                } else if (motorPos != AWD && fakeMotorState != 1) {
-                    digitalWrite(fakeMotorPin, HIGH);
-                    fakeMotorState = 1;
-                }
-            }
+            // if (isValid(switchPos)) {
+            //     if (switchPos == AWD && fakeSwitchState != 0){
+            //         digitalWrite(fakeSwitchPin, LOW);
+            //         fakeSwitchState = 0;
+            //     } else if (switchPos != AWD && fakeSwitchState != 1) {
+            //         digitalWrite(fakeSwitchPin, HIGH);
+            //         fakeSwitchState = 1;
+            //     }
+            // }
+            // if (isValid(motorPos)) {
+            //     if (motorPos == AWD && fakeMotorState != 0){
+            //         digitalWrite(fakeMotorPin, LOW);
+            //         fakeMotorState = 0;
+            //     } else if (motorPos != AWD && fakeMotorState != 1) {
+            //         digitalWrite(fakeMotorPin, HIGH);
+            //         fakeMotorState = 1;
+            //     }
+            // }
         }
 
     public:
         // OtherOutputs(Adafruit_ST7735 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
-        OtherOutputs(Adafruit_ST7789 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
+        // OtherOutputs(Adafruit_ST7789 *tft, uint8_t fakeSwitchPin, uint8_t fakeMotorPin) : screenOut(tft), fakeSwitchPin(fakeSwitchPin), fakeMotorPin(fakeMotorPin) {
+        // } 
+
+        OtherOutputs(Adafruit_ST7789 *tft) : screenOut(tft) {
         } 
 
         void begin() {
             screenOut.begin();
             // TODO: Set pin outs for whatever I end up using to trick car
-            pinMode(fakeSwitchPin, OUTPUT);
-            pinMode(fakeMotorPin, OUTPUT);
-            digitalWrite(fakeSwitchPin, LOW);
-            digitalWrite(fakeMotorPin, LOW);
+            // pinMode(fakeSwitchPin, OUTPUT);
+            // pinMode(fakeMotorPin, OUTPUT);
+            // digitalWrite(fakeSwitchPin, LOW);
+            // digitalWrite(fakeMotorPin, LOW);
         }
 
         void writeOutputs() {
             // Output signals to trick car into thinking it's in correct state
             // And display screen
-            writeFakePinOuts();
+            // writeFakePinOuts();
             writeDisplay();
         }
 

@@ -19,25 +19,19 @@
   #define DEBUG_PRINT(x)
 #endif
 
-////// FOR LCD 
-// const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; 
-// const byte switchModePin = A0;
-// const byte motorPWMpin = 9;
-// const byte motorDirPin = 8;
-// const byte brakeReleasePin = 7;
-// const byte motorModePin = A1;
-// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
-/////// FOR TFT
+// PINS
 const uint8_t TFT_CS = 10, TFT_DC = 9, TFT_RST = 8; 
 const uint8_t switchModePin = A0;
 const uint8_t motorPWMpin = 3;
 const uint8_t motorDirPin = 2;
 const uint8_t brakeReleasePin = 4;
-const uint8_t fakeSwitchPin = 5;
-const uint8_t fakeMotorPin = 6;
+const uint8_t manualDirectionPin = 5;
+const uint8_t manualDrivePin = 6;
+
+// const uint8_t fakeSwitchPin = 5;  // Not used yet
+// const uint8_t fakeMotorPin = 6;   // Not used yet
 const uint8_t motorModePin = A1;
-const uint8_t backLightPin = 7;
+// const uint8_t backLightPin = 7;
 // Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -45,8 +39,11 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 // int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 int SWITCH_FIXED_RESISTOR = 4620;  // Resistance of fixed resistor for detecing mode select resistance in ohms
 
+bool manualMode = false;
 
-OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);  // TODO: Add backLightPin and some backlight control
+
+// OtherOutputs output = OtherOutputs(&tft, fakeSwitchPin, fakeMotorPin);  // TODO: Add backLightPin and some backlight control
+OtherOutputs output = OtherOutputs(&tft);  // TODO: Add backLightPin and some backlight control
 SelectorSwitch selector = SelectorSwitch(switchModePin, &output, SWITCH_FIXED_RESISTOR);
 // Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, vOutRead, &output);
 Motor motor = Motor(motorPWMpin, motorDirPin, brakeReleasePin, motorModePin, &output);
@@ -109,42 +106,52 @@ void normal_setup() {
   #endif
   randomSeed(analogRead(A5));  // Makes random() change between boots
   output.begin();
-  delay(1000); // Some time for output bootup display to show
+  delay(3000); // Some time for output bootup display to show
   motor.begin();
 
-  if (analogDisconected(motorModePin)) {
-    output.setMainMessage(F("Motor Disconnected: Waiting for reconnect"));
+  // Manual Use Pins
+  pinMode(manualDirectionPin, INPUT_PULLUP);
+  pinMode(manualDrivePin, INPUT_PULLUP);
+  delay(1);
+  if (digitalRead(manualDrivePin) == LOW) { // Then booting with manual override
+    manualMode = true;
+    output.setMainMessage(F("Manual Mode Enabled"));
     selector.begin(0);
-    delay(2000);
-    while (analogDisconected(motorModePin)) {
-      selector.checkState();
-      delay(10);
-      motor.getPosition();
-      delay(10);
-    }
-    output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
-    delay(60000);
-  }
-
-  // int startPos = motor.getPosition();
-  int startPos = FOURLO;
-  if (isValid(startPos)) {
-    if (startPos == NEUTRAL) {
-      selector.begin(1);
-    } else {
+  } else {  // Normal startup procedure
+    if (analogDisconected(motorModePin)) {
+      output.setMainMessage(F("Motor Disconnected: Waiting for reconnect"));
       selector.begin(0);
+      delay(2000);
+      while (analogDisconected(motorModePin)) {
+        selector.checkState();
+        delay(10);
+        motor.getPosition();
+        delay(10);
+      }
+      output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
+      delay(60000);
     }
-  } else {
-    if (motor.getValidPosition() == NEUTRAL) {
-      selector.begin(1); 
-    } else {
-      selector.begin(0);
-    }
-    waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
-  }
 
-  if (selector.getSelection() != motor.getPosition()) {
-    waitUntilReset(); // Prevent a shift occuring immediately after startup without input
+    // int startPos = motor.getPosition();
+    int startPos = FOURLO;
+    if (isValid(startPos)) {
+      if (startPos == NEUTRAL) {
+        selector.begin(1);
+      } else {
+        selector.begin(0);
+      }
+    } else {
+      if (motor.getValidPosition() == NEUTRAL) {
+        selector.begin(1); 
+      } else {
+        selector.begin(0);
+      }
+      waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
+    }
+
+    if (selector.getSelection() != motor.getPosition()) {
+      waitUntilReset(); // Prevent a shift occuring immediately after startup without input
+    }
   }
 }
 
@@ -171,9 +178,7 @@ void testSwitch() {
 
 
 void normal() {
-  DEBUG_PRINTLN(F("Main: Starting Loop"));  // Debugging
   bool success = false;
-
   desiredPosition = selector.getSelection();
   if (motor.getPosition() != desiredPosition) {
     success = motor.attemptShift(desiredPosition, MAX_SINGLE_SHIFT_ATTEMPTS);
@@ -196,13 +201,45 @@ void readOnly() {
     delay(500);
 }
 
+void manualControl() {
+  int dirRead = digitalRead(manualDirectionPin);
+  int dir = 0;
+  motor.getPosition();
+  if (dirRead == HIGH) { // Towards 4HI
+    output.setMainMessage(F("Toward 4HI"));
+    dir = TOWARD_4HI;
+  } else if (dir == LOW) { // Towards 4LO
+    output.setMainMessage(F("Toward 4LO"));
+    dir = TOWARD_4LO;
+  } else {  // Invalid read
+    output.setMainMessage(F("ERROR"));
+  }
+
+  unsigned long startTime = millis();
+  while (digitalRead(manualDrivePin) == LOW && millis() - startTime < 5000) { // Button pressed
+    motor.manualDrive(dir);
+  } 
+  motor.manualStop();
+
+  if (digitalRead(manualDrivePin) == LOW) { // Button still pressed (Prevent next loop until released)
+    output.setMainMessage(F("Release Manual Drive"));
+    while (digitalRead(manualDrivePin) == LOW) {
+      delay(10);
+    }
+  }
+}
+
 /**
  * Runs repeatedly after Arduino setup()
  */
 void loop() {
-  // testSwitch();
-  normal();
   // readOnly();
+  // testSwitch();
+  if (manualMode == true) {
+    manualControl();
+  } else {
+    normal();
+  }
 }
 
 
