@@ -22,11 +22,11 @@
 // PINS
 const uint8_t TFT_CS = 10, TFT_DC = 9, TFT_RST = 8; 
 const uint8_t switchModePin = A0;
-const uint8_t motorPWMpin = 3;
-const uint8_t motorDirPin = 2;
+const uint8_t motorPWMpin = 6;
+const uint8_t motorDirPin = 7;
 const uint8_t brakeReleasePin = 4;
-const uint8_t manualDirectionPin = 5;
-const uint8_t manualDrivePin = 6;
+const uint8_t manualDirectionPin = 2;
+const uint8_t manualDrivePin = 3;
 
 // const uint8_t fakeSwitchPin = 5;  // Not used yet
 // const uint8_t fakeMotorPin = 6;   // Not used yet
@@ -98,7 +98,6 @@ int analogDisconected(const uint8_t pin) {
   return disconnected;
 }
 
-
 void normal_setup() {
   #ifdef DEBUG
     Serial.begin(115200); 
@@ -109,49 +108,39 @@ void normal_setup() {
   delay(3000); // Some time for output bootup display to show
   motor.begin();
 
-  // Manual Use Pins
-  pinMode(manualDirectionPin, INPUT_PULLUP);
-  pinMode(manualDrivePin, INPUT_PULLUP);
-  delay(1);
-  if (digitalRead(manualDrivePin) == LOW) { // Then booting with manual override
-    manualMode = true;
-    output.setMainMessage(F("Manual Mode Enabled"));
+  if (analogDisconected(motorModePin)) {
+    output.setMainMessage(F("Motor Disconnected: Waiting for reconnect"));
     selector.begin(0);
-  } else {  // Normal startup procedure
-    if (analogDisconected(motorModePin)) {
-      output.setMainMessage(F("Motor Disconnected: Waiting for reconnect"));
-      selector.begin(0);
-      delay(2000);
-      while (analogDisconected(motorModePin)) {
-        selector.checkState();
-        delay(10);
-        motor.getPosition();
-        delay(10);
-      }
-      output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
-      delay(60000);
+    delay(2000);
+    while (analogDisconected(motorModePin)) {
+      selector.readOnly();
+      delay(10);
+      motor.getPosition();
+      delay(10);
     }
+    output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
+    delay(60000);
+  }
 
-    // int startPos = motor.getPosition();
-    int startPos = FOURLO;
-    if (isValid(startPos)) {
-      if (startPos == NEUTRAL) {
-        selector.begin(1);
-      } else {
-        selector.begin(0);
-      }
+  // int startPos = motor.getPosition();
+  int startPos = FOURLO;
+  if (isValid(startPos)) {
+    if (startPos == NEUTRAL) {
+      selector.begin(1);
     } else {
-      if (motor.getValidPosition() == NEUTRAL) {
-        selector.begin(1); 
-      } else {
-        selector.begin(0);
-      }
-      waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
+      selector.begin(0);
     }
+  } else {
+    if (motor.getValidPosition() == NEUTRAL) {
+      selector.begin(1); 
+    } else {
+      selector.begin(0);
+    }
+    waitUntilReset(); // Motor not in a good state already, wait for input before starting main loop
+  }
 
-    if (selector.getSelection() != motor.getPosition()) {
-      waitUntilReset(); // Prevent a shift occuring immediately after startup without input
-    }
+  if (selector.getSelection() != motor.getPosition()) {
+    waitUntilReset(); // Prevent a shift occuring immediately after startup without input
   }
 }
 
@@ -162,12 +151,21 @@ void readOnly_setup() {
   selector.begin(0);
 }
 
-/**
- * Runs once at Arduino Startup
-*/
-void setup() {
-  normal_setup();
-  // readOnly_setup();
+void manualControlSetup() {
+  manualMode = true;
+  pinMode(manualDirectionPin, INPUT_PULLUP);
+
+  randomSeed(analogRead(A5));  // Makes random() change between boots
+  output.begin();
+  delay(300); // Some time for output bootup display to show
+  motor.begin();
+
+  output.setMainMessage(F("Manual Mode Enabled"));
+  selector.begin(0);
+  delay(1000);
+  while (digitalRead(manualDrivePin) == LOW) {
+    output.setMainMessage(F("Release Drive Button"));
+  }
 }
 
 
@@ -175,7 +173,6 @@ void testSwitch() {
   desiredPosition = selector.getSelection();
   delay(1000); 
 }
-
 
 void normal() {
   bool success = false;
@@ -193,7 +190,6 @@ void normal() {
   }
 }
 
-
 void readOnly() {
     output.setMainMessage(F("Read Only Mode"));
     selector.getSelection();
@@ -204,28 +200,52 @@ void readOnly() {
 void manualControl() {
   int dirRead = digitalRead(manualDirectionPin);
   int dir = 0;
+  char msg[30];
   motor.getPosition();
+  selector.readOnly();
   if (dirRead == HIGH) { // Towards 4HI
-    output.setMainMessage(F("Toward 4HI"));
+    sprintf(msg, "Toward 4HI");
+    // output.setMainMessage(F("Toward 4HI"));
     dir = TOWARD_4HI;
   } else if (dir == LOW) { // Towards 4LO
-    output.setMainMessage(F("Toward 4LO"));
+    sprintf(msg, "Toward 4LO");
+    // output.setMainMessage(F("Toward 4LO"));
     dir = TOWARD_4LO;
   } else {  // Invalid read
-    output.setMainMessage(F("ERROR"));
+    sprintf(msg, "ERROR");
   }
+  output.setMainMessage(msg);
 
-  unsigned long startTime = millis();
-  while (digitalRead(manualDrivePin) == LOW && millis() - startTime < 5000) { // Button pressed
-    motor.manualDrive(dir);
-  } 
-  motor.manualStop();
+  if (digitalRead(manualDrivePin) == LOW) { // Starting Drive
+    strcat(msg, ":     Driving");
+    output.setMainMessage(msg);
+    unsigned long startTime = millis();
+    while (digitalRead(manualDrivePin) == LOW && millis() - startTime < 5000) { // Button pressed
+      motor.manualDrive(dir);
+    } 
+    motor.manualStop();
 
-  if (digitalRead(manualDrivePin) == LOW) { // Button still pressed (Prevent next loop until released)
-    output.setMainMessage(F("Release Manual Drive"));
-    while (digitalRead(manualDrivePin) == LOW) {
-      delay(10);
+    if (digitalRead(manualDrivePin) == LOW) { // Button still pressed (Prevent next loop until released)
+      output.setMainMessage(F("Release Manual Drive"));
+      while (digitalRead(manualDrivePin) == LOW) {
+        delay(10);
+      }
     }
+  }
+}
+
+/**
+ * Runs once at Arduino Startup
+*/
+void setup() {
+  // normal_setup();
+  // readOnly_setup();
+  pinMode(manualDrivePin, INPUT_PULLUP);
+  delay(1);
+  if (digitalRead(manualDrivePin) == LOW) { // Then booting with manual override
+    manualControlSetup();
+  } else {  // Normal startup procedure
+    normal_setup();
   }
 }
 

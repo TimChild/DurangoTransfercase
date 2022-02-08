@@ -99,21 +99,11 @@ class Motor {
             return false;
         }
 
-        int checkShiftWorking(int maxAttempts) {
-            // Returns 1 if shift is still OK, otherwise returns < 0 (i.e. in time limits, and not too many attempts)
+        int checkShiftTimeout() {
+            // Returns 1 if shift is still OK, otherwise returns < 0 
             if (millis() - shiftStart > MAX_SHIFT_TIME_S*1000) { // If current shift attempt fails by timing out
-                DEBUG_PRINTLN(F("Motor>checkShiftWorking: Max time exceeded, stopping"));  // DEBUGGING
-                stopMotor();
-                if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS-1) {
-                    output->setMainMessage(F("Shift attempt failed. Will retry"));
-                    addShiftAttempt();
-                    delay(RETRY_TIME_S*1000);
-                    output->setMainMessage(F("Retrying"));
-                    shiftStart = millis();
-                    return 1;  // OK to continue trying to shift again
-                } else {
-                    return -1; // Shift has failed, abort
-                }
+                DEBUG_PRINTLN(F("Motor>checkShiftWorking: Max time exceeded"));  // DEBUGGING
+                return -1;
             } else {
                 DEBUG_PRINTLN(F("Motor>checkShiftWorking: Shift OK to continue"));  // DEBUGGING
                 return 1; // Shift OK
@@ -151,29 +141,6 @@ class Motor {
             DEBUG_PRINT(F("Motor>readPositionVolts: Reading = ")); DEBUG_PRINTLN(volts);
             return volts;
         }
-
-        // float getPositionLowVolts(int position) {
-        //     // Return low voltage of position
-        //     switch (position){
-        //         case 0: return LOCK_LOW;
-        //         case 1: return AWD_LOW;
-        //         case 2: return N_LOW;
-        //         case 3: return LO_LOW;
-        //         default: return LOW_LIMIT; // TODO: Is this the right thing to return in this case?
-        //     }
-
-        // }
-
-        // float getPositionHighVolts(int position) {
-        //     // Return high voltage of position
-        //     switch (position){
-        //         case 0: return LOCK_HIGH;
-        //         case 1: return AWD_HIGH;
-        //         case 2: return N_HIGH;
-        //         case 3: return LO_HIGH;
-        //         default: return HIGH_LIMIT; // TODO: Is this the right thing to return in this case?
-        //     }
-        // }
 
         float getPositionVolts(int position) {
             switch (position){
@@ -273,7 +240,6 @@ class Motor {
         float desiredPositionDistance(int desiredPos) {
             // Return distance to desired position
             float currentPosVolts = readPositionVolts();
-            // float desiredPosVolts = (getPositionLowVolts(desiredPos) + getPositionHighVolts(desiredPos))/2.0; // Aim for middle
             float desiredPosVolts = getPositionVolts(desiredPos);
             return min(1.0, abs(currentPosVolts - desiredPosVolts));
         }
@@ -339,7 +305,6 @@ class Motor {
             pinMode(pwmPin, OUTPUT);
             pinMode(brakeReleasePin, OUTPUT);
             pinMode(modePin, INPUT);
-            // pinMode(modePin, INPUT_PULLUP);  // Checking that the ADC pin is not shorted to the switch 
 
             lastValidPos = readEEPROMposition();
             currentPos = getPosition();
@@ -359,14 +324,6 @@ class Motor {
                 position = NEUTRAL;
             } else if (currentPosVolts > LO_V - MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_V + MOTOR_DRIFT_TOLERANCE_V) {
                 position = FOURLO;
-            // } else if (currentPosVolts > LOCK_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LOCK_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = FOURHI;
-            // } else if (currentPosVolts > AWD_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < AWD_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = AWD;
-            // } else if (currentPosVolts > N_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < N_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = NEUTRAL;
-            // } else if (currentPosVolts > LO_LOW-MOTOR_DRIFT_TOLERANCE_V && currentPosVolts < LO_HIGH+MOTOR_DRIFT_TOLERANCE_V) {
-            //     position = FOURLO;
             } else {
                 position = -1; // Bad position but in range
             }
@@ -398,25 +355,28 @@ class Motor {
             DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance() = ")); DEBUG_PRINTLN(desiredPositionDistance(desiredPos));
             while (desiredPositionDistance(desiredPos) > POSITION_TOLERANCE) {
                 DEBUG_PRINT(F("Motor>attemptShift: desiredPositionDistance = "));DEBUG_PRINTLN((double)desiredPositionDistance(desiredPos));
-                if (checkShiftWorking(maxAttempts) > 0) { // TODO: Re-write this a little. CheckShiftWorking does more than what it says... 
+                if (checkShiftTimeout() > 0) { 
                     stepShiftSpeed(desiredPositionDirection(desiredPos), desiredPos);
-                } else {  // Failed to shift 
+                } else {  // Failed to shift by timeout
                     stopMotor();
                     if (getPosition() == desiredPos) {
                         output->setMainMessage(F("Didn't reach target V, but in desired Position"));
                         delay(2000);
                         break;
-                    // }  // TODO: Add this back in after taking this behaviour out of checkShiftWorking
-                    // else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS) {
-                    //     shiftStart = millis();
-                    //     continue;
+                    }  
+                    else if (singleShiftAttempts < MAX_SINGLE_SHIFT_ATTEMPTS-1) {
+                        output->setMainMessage(F("Shift attempt failed. Will retry"));
+                        addShiftAttempt();
+                        delay(RETRY_TIME_S*1000);
+                        output->setMainMessage(F("Retrying"));
+                        shiftStart = millis();
+                        continue;
                     } else {
                         tryRecoverBadShift(desiredPos);
                         break;
                     }
                 }
             }
-            output->setMotorVolts(readPositionVolts());
             return endShift(desiredPos);
         }
 

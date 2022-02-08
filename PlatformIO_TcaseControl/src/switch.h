@@ -146,6 +146,10 @@ class SelectorSwitch {
             lastValidState = state;
         }
 
+        void readOnly(){
+            readSwitchPositionOhms();
+        }
+
         int getSelection() {
             // Return current selection (last validState after calling check)
             checkState();
