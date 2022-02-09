@@ -203,30 +203,4 @@ class SelectorSwitch {
             }
             output->setMainMessage(messageBuffer);
         }
-        // void checkState() {
-        //     // Check the switch position. If new update current State and set timeEnteredState
-        //     // If timeEnteredState > X set lastValidState
-        //     int newState = getSwitchPosition();
-        //     DEBUG_PRINTLN(F("CheckState"));
-        //     if (newState != currentState) {  // If switch has changed state
-        //         currentState = newState;
-        //         timeEnteredState = millis();
-        //     }
-
-        //     if (currentState == NEUTRAL) { // If Neutral currently pressed, keep checking until either a few S or button released
-        //         DEBUG_PRINTLN(F("N Pressed"));
-        //         neutralPressed();
-        //     } else { 
-        //         DEBUG_PRINTLN(F("Checking if currentState"));
-        //         if (currentState >= 0 && currentState <= 3 && millis() - timeEnteredState > SW_DEBOUNCE_S*1000) {
-        //             lastValidState = currentState;
-        //         }
-        //     }
-
-        //     if (inNeutral) {
-        //         lastValidState = 2;
-        //     }
-        //     output->setSwitchPos(lastValidState);  
-        //     timeLastChecked = millis();
-        // }
 };
