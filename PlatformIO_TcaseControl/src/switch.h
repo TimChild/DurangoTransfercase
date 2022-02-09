@@ -57,27 +57,6 @@ class SelectorSwitch {
             return resistance;
         }
 
-        int getSwitchPosition() {
-            // Returns position as value from 0 -> 3 or -1 if invalid (or -2 if invalid and out of range)
-            int ohms = readSwitchPositionOhms();
-            int position;
-            if (ohms < SW_SHORTED_HIGH || ohms > SW_OPEN_LOW) {
-                position = -2;  // Bad position and out of range
-            } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
-                position = FOURHI;
-            } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
-                position = AWD;
-            // } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW))*0.9 && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))*1.1) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
-            } else if (ohms > SW_N_LOW && ohms < SW_N_HIGH) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
-                position = NEUTRAL;
-            } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
-                position = FOURLO;
-            } else {
-                position = -1; // Bad position but in range
-            }
-            return position;
-        }
-
         void neutralPressed() {
             int currentState;
             output->getMainMessage(messageBuffer, messageBufferLength);
@@ -142,6 +121,27 @@ class SelectorSwitch {
             output->setSwitchPos(lastValidState);
         }
 
+        int getSwitchPosition() {
+            // Returns position as value from 0 -> 3 or -1 if invalid (or -2 if invalid and out of range)
+            int ohms = readSwitchPositionOhms();
+            int position;
+            if (ohms < SW_SHORTED_HIGH || ohms > SW_OPEN_LOW) {
+                position = -2;  // Bad position and out of range
+            } else if (ohms > SW_LOCK_LOW && ohms < SW_LOCK_HIGH) {
+                position = FOURHI;
+            } else if (ohms > SW_AWD_LOW && ohms < SW_AWD_HIGH) {
+                position = AWD;
+            // } else if (ohms > min(SW_N_AWD_LOW, min(SW_N_LOCK_LOW, SW_N_LO_LOW))*0.9 && ohms < max(SW_N_AWD_HIGH, max(SW_N_LOCK_HIGH, SW_N_LO_HIGH))*1.1) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
+            } else if (ohms > SW_N_LOW && ohms < SW_N_HIGH) {  // 4LO_N reads 228ohm (instead of 226 which should be the max...)
+                position = NEUTRAL;
+            } else if (ohms > SW_LO_LOW && ohms < SW_LO_HIGH) {
+                position = FOURLO;
+            } else {
+                position = -1; // Bad position but in range
+            }
+            return position;
+        }
+
         void setLastValidState(byte state) {
             lastValidState = state;
         }
@@ -178,29 +178,5 @@ class SelectorSwitch {
                 }
             }
             timeLastChecked = millis();
-        }
-
-        void waitForLongNpress(float duration_s) {
-            unsigned long time;
-            output->getMainMessage(messageBuffer, messageBufferLength);
-            while (1) {  // Keep looping through this until N is pressed for duration_s
-                while (getSwitchPosition() != NEUTRAL) {
-                    delay(10);
-                }
-                time = millis();
-                output->setMainMessage(F("N pressed"));
-                while (millis() - time < duration_s*1000 && getSwitchPosition() == NEUTRAL) {
-                    delay(10);
-                }
-                if (millis() - time > duration_s*1000) {
-                    output->setMainMessage(F("N pressed"));
-                    break;
-                } else {
-                    output->setMainMessage(F("N released early"));
-                    delay(500);
-                    output->setMainMessage(messageBuffer);
-                }
-            }
-            output->setMainMessage(messageBuffer);
         }
 };

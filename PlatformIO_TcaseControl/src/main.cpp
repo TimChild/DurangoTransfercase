@@ -61,8 +61,33 @@ void blink() {
 }
 
 void waitUntilLongNpress() {
-  output.setMainMessage(F("WARNING: Motor position is not valid. Hold N for 5s to reset"));
-  selector.waitForLongNpress(5.0);
+  unsigned long time;
+  const char msg[] PROGMEM = "WARNING: Motor position is not valid. Hold N for 5s to reset";
+  output.setMainMessage(msg);
+  while (1) {  // Keep looping through this until N is pressed for duration_s
+      while (selector.getSwitchPosition() != NEUTRAL) {
+          motor.getPosition();
+          delay(10);
+      }
+      time = millis();
+      output.setMainMessage(F("N pressed"));
+      while (millis() - time < 5*1000 && selector.getSwitchPosition() == NEUTRAL) {
+          motor.getPosition();
+          delay(10);
+      }
+      if (millis() - time > 5*1000) {
+          break;
+      } else {
+          output.setMainMessage(F("N released early"));
+          delay(500);
+          output.setMainMessage(msg);
+      }
+  }
+  output.setMainMessage(F("Reset Successful. Release N"));
+  while (selector.getSwitchPosition() == NEUTRAL) {
+    motor.getPosition();
+    delay(10);
+  }
   output.setMainMessage(F(""));
 }
 
@@ -120,10 +145,10 @@ void normal_setup() {
     }
     output.setMainMessage(F("Motor Reconnected: Continuing in 60s"));
     delay(60000);
+    output.setMainMessage(F(""));
   }
 
-  // int startPos = motor.getPosition();
-  int startPos = FOURLO;
+  int startPos = motor.getPosition();
   if (isValid(startPos)) {
     if (startPos == NEUTRAL) {
       selector.begin(1);

@@ -176,10 +176,10 @@ class Motor {
             // Update motor power based on current state.
             // increase power if not at max and not close to desired pos
             // decrease power if close to desired pos
-            float timeSinceLastSet = min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0;  // Smaller of true time elapsed or 50ms
+            float timeSinceLastSet = (float)min(millis() - lastMotorSetTime, (unsigned long)50)/1000.0;  // Smaller of true time elapsed or 50ms
 
             DEBUG_PRINT(F("Motor>stepShiftSpeed: T=")); DEBUG_PRINT(timeSinceLastSet); DEBUG_PRINT(F(", speed=")); DEBUG_PRINT(motorSpeed); DEBUG_PRINT(F(", direction=")); DEBUG_PRINTLN(direction); 
-            if (timeSinceLastSet*PWM_FREQUENCY > 1.0) {  // More than 1 full duty cycle
+            if (timeSinceLastSet*PWM_FREQUENCY > 5.0) {  // More than 5 full duty cycles
                 if (motorDirection != 0 && direction != motorDirection) {  // Change of direction!! 
                     motorSpeed = 0.0;
                     stopMotor();
