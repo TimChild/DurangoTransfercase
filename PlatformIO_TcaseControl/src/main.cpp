@@ -37,7 +37,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 
 // int SWITCH_FIXED_RESISTOR = 4555;  // Resistance of fixed resistor for detecing mode select resistance in ohms
-int SWITCH_FIXED_RESISTOR = 4620;  // Resistance of fixed resistor for detecing mode select resistance in ohms
+int SWITCH_FIXED_RESISTOR = 4675;  // Resistance of fixed resistor for detecting mode select resistance in ohms
 
 bool manualMode = false;
 
@@ -107,7 +107,7 @@ void waitUntilReset() {
 int analogDisconected(const uint8_t pin) {
   int disconnected = 0;
   pinMode(pin, INPUT_PULLUP);
-  delay(5);
+  delay(50);
   analogRead(pin);  // Apparently first few reads after switching mode can be bad
   analogRead(pin);
   analogRead(pin);

@@ -215,11 +215,13 @@ class ScreenOut {
             }
 
             if (abs(motorVolts - currentMotorVolts) > 0.02) {
-                char temp[6];
-                dtostrf(motorVolts, 4, 3, temp);
-                sprintf(buffer, "%s V", temp);
-                writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 50*SF+TOP_MARGIN, 1*SF, SCREEN_WIDTH/2-8*SF - RIGHT_MARGIN, 1);
-                currentMotorVolts = motorVolts;
+                if (motorVolts < 10 && motorVolts > -10) {
+                    char temp[7];
+                    dtostrf(motorVolts, 4, 3, temp);
+                    sprintf(buffer, "%s V", temp);
+                    writeBlock(buffer, SCREEN_WIDTH/2+4*SF, 50*SF+TOP_MARGIN, 1*SF, SCREEN_WIDTH/2-8*SF - RIGHT_MARGIN, 1);
+                    currentMotorVolts = motorVolts;
+                }
             }
 
             if (strcmp(mainText, currentMainText) != 0) {
