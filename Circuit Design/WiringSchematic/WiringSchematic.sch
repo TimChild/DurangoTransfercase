@@ -64,8 +64,6 @@ Text Label 6700 2900 0    60   ~ 0
 A4(SDA)
 Text Label 6700 2800 0    60   ~ 0
 A5(SCL)
-Text Notes 10850 1050 0    60   ~ 0
-Holes
 Text Notes 8550 750  0    60   ~ 0
 Shield for Arduino that uses\nthe same pin disposition\nlike "Uno" board Rev 3.
 $Comp
@@ -255,21 +253,6 @@ Wire Wire Line
 	5550 3400 4800 3400
 Text Notes 5850 3200 0    60   ~ 0
 1
-Wire Notes Line
-	11200 1050 10700 1050
-Wire Notes Line
-	10700 1050 10700 550 
-$Comp
-L CustomLibrary:PowerDistFCM U2
-U 1 1 616D6DBF
-P 1550 2000
-F 0 "U2" H 2078 1751 50  0000 L CNN
-F 1 "PowerDistFCM" H 1350 1900 50  0000 L CNN
-F 2 "" H 1550 2000 50  0001 C CNN
-F 3 "" H 1550 2000 50  0001 C CNN
-	1    1550 2000
-	1    0    0    -1  
-$EndComp
 $Comp
 L CustomLibrary:ShiftMotor U4
 U 1 1 616D884D
@@ -335,53 +318,7 @@ Wire Wire Line
 	4200 4300 3550 4300
 Wire Wire Line
 	3550 4300 3550 3550
-$Comp
-L Device:R_US R_4HI3
-U 1 1 61741EA6
-P 10600 1650
-F 0 "R_4HI3" H 10668 1696 50  0000 L CNN
-F 1 "2.2K" H 10668 1605 50  0000 L CNN
-F 2 "" V 10640 1640 50  0001 C CNN
-F 3 "~" H 10600 1650 50  0001 C CNN
-	1    10600 1650
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_4HI4
-U 1 1 617450DB
-P 10600 2050
-F 0 "R_4HI4" H 10668 2096 50  0000 L CNN
-F 1 "180" H 10668 2005 50  0000 L CNN
-F 2 "" V 10640 2040 50  0001 C CNN
-F 3 "~" H 10600 2050 50  0001 C CNN
-	1    10600 2050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_AWD8
-U 1 1 6174D81D
-P 10900 2050
-F 0 "R_AWD8" H 10968 2096 50  0000 L CNN
-F 1 "220" H 10968 2005 50  0000 L CNN
-F 2 "" V 10940 2040 50  0001 C CNN
-F 3 "~" H 10900 2050 50  0001 C CNN
-	1    10900 2050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_AWD7
-U 1 1 6174DCD3
-P 10900 1650
-F 0 "R_AWD7" H 10968 1696 50  0000 L CNN
-F 1 "1K" H 10968 1605 50  0000 L CNN
-F 2 "" V 10940 1640 50  0001 C CNN
-F 3 "~" H 10900 1650 50  0001 C CNN
-	1    10900 1650
-	1    0    0    -1  
-$EndComp
 Connection ~ 6450 3100
-Wire Wire Line
-	10600 1800 10600 1900
 Wire Wire Line
 	6450 4750 6450 5100
 Wire Wire Line
@@ -432,108 +369,11 @@ Wire Wire Line
 Wire Wire Line
 	5450 1450 5450 2050
 Connection ~ 5450 2350
-$Comp
-L power:GND #PWR0101
-U 1 1 617C8908
-P 1000 7350
-F 0 "#PWR0101" H 1000 7100 50  0001 C CNN
-F 1 "GND" H 1005 7177 50  0000 C CNN
-F 2 "" H 1000 7350 50  0001 C CNN
-F 3 "" H 1000 7350 50  0001 C CNN
-	1    1000 7350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1000 7350 5450 7350
 Connection ~ 5450 5550
 Wire Wire Line
 	3150 5050 3350 5050
 Wire Wire Line
 	6450 2350 6450 3100
-$Comp
-L CustomLibrary:Relay K_FakeMotorMode1
-U 1 1 617DA155
-P 8400 1500
-F 0 "K_FakeMotorMode1" H 8500 1800 50  0000 C CNN
-F 1 "Relay" H 8500 1700 50  0000 C CNN
-F 2 "" H 8400 1500 50  0001 C CNN
-F 3 "" H 8400 1500 50  0001 C CNN
-	1    8400 1500
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_4HI1
-U 1 1 617EA546
-P 8550 1700
-F 0 "R_4HI1" H 8618 1746 50  0000 L CNN
-F 1 "82K" H 8618 1655 50  0000 L CNN
-F 2 "" V 8590 1690 50  0001 C CNN
-F 3 "~" H 8550 1700 50  0001 C CNN
-	1    8550 1700
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_AWD3
-U 1 1 617ED389
-P 9050 1700
-F 0 "R_AWD3" H 9118 1746 50  0000 L CNN
-F 1 "2.2K" H 9118 1655 50  0000 L CNN
-F 2 "" V 9090 1690 50  0001 C CNN
-F 3 "~" H 9050 1700 50  0001 C CNN
-	1    9050 1700
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_AWD4
-U 1 1 617F2B2D
-P 9050 2000
-F 0 "R_AWD4" H 9118 2046 50  0000 L CNN
-F 1 "220" H 9118 1955 50  0000 L CNN
-F 2 "" V 9090 1990 50  0001 C CNN
-F 3 "~" H 9050 2000 50  0001 C CNN
-	1    9050 2000
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_4HI2
-U 1 1 617F2F56
-P 8550 2000
-F 0 "R_4HI2" H 8618 2046 50  0000 L CNN
-F 1 "47K" H 8618 1955 50  0000 L CNN
-F 2 "" V 8590 1990 50  0001 C CNN
-F 3 "~" H 8550 2000 50  0001 C CNN
-	1    8550 2000
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8550 1550 8850 1550
-Wire Wire Line
-	8850 1550 8850 1350
-Wire Wire Line
-	8850 1350 8700 1350
-Wire Wire Line
-	9050 1550 9050 1150
-Wire Wire Line
-	9050 1150 8700 1150
-$Comp
-L Device:R_US R_FakeMotor1
-U 1 1 6183C36E
-P 900 3000
-F 0 "R_FakeMotor1" H 968 3046 50  0000 L CNN
-F 1 "2.2K" H 968 2955 50  0000 L CNN
-F 2 "" V 940 2990 50  0001 C CNN
-F 3 "~" H 900 3000 50  0001 C CNN
-	1    900  3000
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1150 2200 1150 2850
-Wire Wire Line
-	1150 2850 900  2850
-Wire Wire Line
-	900  3150 1500 3150
-Wire Wire Line
-	1500 3150 1500 2200
 $Comp
 L CustomLibrary:Screen DS1
 U 1 1 61769F38
@@ -596,24 +436,7 @@ Wire Wire Line
 Wire Wire Line
 	3150 3400 3150 3100
 Wire Wire Line
-	3150 1850 2100 1850
-Wire Wire Line
-	2100 1850 2100 1050
-Wire Wire Line
 	5200 1200 5200 2950
-$Comp
-L Analog_Switch:ADG419BR U3
-U 1 1 61A5590C
-P 2500 1250
-F 0 "U3" H 2500 1492 50  0000 C CNN
-F 1 "ADG419BR" H 2500 1401 50  0000 C CNN
-F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2500 950 50  0001 C CNN
-F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADG419.pdf" H 2500 1250 50  0001 C CNN
-	1    2500 1250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2800 1050 2800 1250
 Wire Wire Line
 	3350 4200 5000 4200
 $Comp
@@ -687,8 +510,6 @@ F 3 "~" H 9100 3650 50  0001 C CNN
 	1    9100 3650
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	10900 1800 10900 1900
 $Comp
 L CustomLibrary:Cluster U7
 U 1 1 616D7540
@@ -878,11 +699,6 @@ F 3 "" H 1000 1050 50  0001 C CNN
 	1    1000 1050
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	1000 1050 2100 1050
-Connection ~ 2100 1050
-Wire Wire Line
-	2100 1050 2800 1050
 $Comp
 L power:+5V #PWR0103
 U 1 1 622C390D
@@ -932,29 +748,6 @@ Wire Wire Line
 Connection ~ 3150 3100
 Wire Wire Line
 	3150 3100 3150 1850
-Wire Wire Line
-	9450 1400 9700 1400
-Wire Wire Line
-	10150 1300 10450 1300
-Wire Wire Line
-	10900 1200 10100 1200
-Wire Wire Line
-	10900 1200 10900 1500
-$Comp
-L CustomLibrary:Relay K_FakeSwitchMode1
-U 1 1 616E3269
-P 9800 1550
-F 0 "K_FakeSwitchMode1" H 9900 1850 50  0000 C CNN
-F 1 "Relay" H 9900 1750 50  0000 C CNN
-F 2 "" H 9800 1550 50  0001 C CNN
-F 3 "" H 9800 1550 50  0001 C CNN
-	1    9800 1550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	10100 1400 10600 1400
-Wire Wire Line
-	10600 1400 10600 1500
 $Comp
 L Device:R_US R_AWD5
 U 1 1 624F6B41
@@ -985,61 +778,6 @@ Wire Wire Line
 	10750 3100 10750 3750
 Wire Wire Line
 	5450 5550 5450 7350
-Wire Wire Line
-	900  4500 900  3900
-$Comp
-L Device:R_US R_AWD1
-U 1 1 625CE69D
-P 900 3450
-F 0 "R_AWD1" H 968 3496 50  0000 L CNN
-F 1 "2.2K" H 968 3405 50  0000 L CNN
-F 2 "" V 940 3440 50  0001 C CNN
-F 3 "~" H 900 3450 50  0001 C CNN
-	1    900  3450
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_AWD2
-U 1 1 625CE0AA
-P 900 3750
-F 0 "R_AWD2" H 968 3796 50  0000 L CNN
-F 1 "220" H 968 3705 50  0000 L CNN
-F 2 "" V 940 3740 50  0001 C CNN
-F 3 "~" H 900 3750 50  0001 C CNN
-	1    900  3750
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R_US R_divider1
-U 1 1 617F3307
-P 1850 3150
-F 0 "R_divider1" H 1918 3196 50  0000 L CNN
-F 1 "22K" H 1918 3105 50  0000 L CNN
-F 2 "" V 1890 3140 50  0001 C CNN
-F 3 "~" H 1850 3150 50  0001 C CNN
-	1    1850 3150
-	1    0    0    -1  
-$EndComp
-$Comp
-L CustomLibrary:FCM U1
-U 1 1 616D8314
-P 1100 4600
-F 0 "U1" H 1928 5042 50  0000 L CNN
-F 1 "FCM" H 1928 4951 50  0000 L CNN
-F 2 "" H 1100 4600 50  0001 C CNN
-F 3 "" H 1100 4600 50  0001 C CNN
-	1    1100 4600
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1850 2200 1850 3000
-Wire Wire Line
-	1300 4500 1300 3300
-Wire Wire Line
-	1300 3300 900  3300
-Wire Wire Line
-	1850 3300 1300 3300
-Connection ~ 1300 3300
 Wire Wire Line
 	4800 4400 4800 5900
 Wire Wire Line
@@ -1094,4 +832,266 @@ Wire Wire Line
 	8100 4350 8100 4300
 Wire Wire Line
 	8100 4300 6350 4300
+Wire Wire Line
+	1000 1050 2100 1050
+Wire Wire Line
+	2100 1850 2100 1050
+Wire Wire Line
+	3150 1850 2100 1850
+Text Notes 10850 1050 0    60   ~ 0
+Holes
+Wire Notes Line
+	11200 1050 10700 1050
+Wire Notes Line
+	10700 1050 10700 550 
+$Comp
+L Device:R_US R_4HI3
+U 1 1 61741EA6
+P -800 2750
+F 0 "R_4HI3" H -732 2796 50  0000 L CNN
+F 1 "2.2K" H -732 2705 50  0000 L CNN
+F 2 "" V -760 2740 50  0001 C CNN
+F 3 "~" H -800 2750 50  0001 C CNN
+	1    -800 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_4HI4
+U 1 1 617450DB
+P -800 3150
+F 0 "R_4HI4" H -732 3196 50  0000 L CNN
+F 1 "180" H -732 3105 50  0000 L CNN
+F 2 "" V -760 3140 50  0001 C CNN
+F 3 "~" H -800 3150 50  0001 C CNN
+	1    -800 3150
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_AWD8
+U 1 1 6174D81D
+P -500 3150
+F 0 "R_AWD8" H -432 3196 50  0000 L CNN
+F 1 "220" H -432 3105 50  0000 L CNN
+F 2 "" V -460 3140 50  0001 C CNN
+F 3 "~" H -500 3150 50  0001 C CNN
+	1    -500 3150
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_AWD7
+U 1 1 6174DCD3
+P -500 2750
+F 0 "R_AWD7" H -432 2796 50  0000 L CNN
+F 1 "1K" H -432 2705 50  0000 L CNN
+F 2 "" V -460 2740 50  0001 C CNN
+F 3 "~" H -500 2750 50  0001 C CNN
+	1    -500 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-800 2900 -800 3000
+Wire Wire Line
+	-500 2900 -500 3000
+Wire Wire Line
+	-500 2300 -500 2600
+Wire Wire Line
+	-800 2500 -800 2600
+Wire Wire Line
+	-1300 2500 -800 2500
+$Comp
+L CustomLibrary:Relay K_FakeSwitchMode1
+U 1 1 616E3269
+P -1600 2650
+F 0 "K_FakeSwitchMode1" H -1500 2950 50  0000 C CNN
+F 1 "Relay" H -1500 2850 50  0000 C CNN
+F 2 "" H -1600 2650 50  0001 C CNN
+F 3 "" H -1600 2650 50  0001 C CNN
+	1    -1600 2650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-500 2300 -1300 2300
+Wire Wire Line
+	-1250 2400 -950 2400
+Wire Wire Line
+	-1950 2500 -1700 2500
+Wire Wire Line
+	-2350 2250 -2700 2250
+Wire Wire Line
+	-2350 2650 -2350 2250
+Wire Wire Line
+	-2550 2450 -2700 2450
+Wire Wire Line
+	-2550 2650 -2550 2450
+Wire Wire Line
+	-2850 2650 -2550 2650
+$Comp
+L Device:R_US R_4HI2
+U 1 1 617F2F56
+P -2850 3100
+F 0 "R_4HI2" H -2782 3146 50  0000 L CNN
+F 1 "47K" H -2782 3055 50  0000 L CNN
+F 2 "" V -2810 3090 50  0001 C CNN
+F 3 "~" H -2850 3100 50  0001 C CNN
+	1    -2850 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_AWD4
+U 1 1 617F2B2D
+P -2350 3100
+F 0 "R_AWD4" H -2282 3146 50  0000 L CNN
+F 1 "220" H -2282 3055 50  0000 L CNN
+F 2 "" V -2310 3090 50  0001 C CNN
+F 3 "~" H -2350 3100 50  0001 C CNN
+	1    -2350 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_AWD3
+U 1 1 617ED389
+P -2350 2800
+F 0 "R_AWD3" H -2282 2846 50  0000 L CNN
+F 1 "2.2K" H -2282 2755 50  0000 L CNN
+F 2 "" V -2310 2790 50  0001 C CNN
+F 3 "~" H -2350 2800 50  0001 C CNN
+	1    -2350 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_4HI1
+U 1 1 617EA546
+P -2850 2800
+F 0 "R_4HI1" H -2782 2846 50  0000 L CNN
+F 1 "82K" H -2782 2755 50  0000 L CNN
+F 2 "" V -2810 2790 50  0001 C CNN
+F 3 "~" H -2850 2800 50  0001 C CNN
+	1    -2850 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L CustomLibrary:Relay K_FakeMotorMode1
+U 1 1 617DA155
+P -3000 2600
+F 0 "K_FakeMotorMode1" H -2900 2900 50  0000 C CNN
+F 1 "Relay" H -2900 2800 50  0000 C CNN
+F 2 "" H -3000 2600 50  0001 C CNN
+F 3 "" H -3000 2600 50  0001 C CNN
+	1    -3000 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L CustomLibrary:PowerDistFCM U2
+U 1 1 616D6DBF
+P -950 3650
+F 0 "U2" H -422 3401 50  0000 L CNN
+F 1 "PowerDistFCM" H -1150 3550 50  0000 L CNN
+F 2 "" H -950 3650 50  0001 C CNN
+F 3 "" H -950 3650 50  0001 C CNN
+	1    -950 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_FakeMotor1
+U 1 1 6183C36E
+P -1600 4650
+F 0 "R_FakeMotor1" H -1532 4696 50  0000 L CNN
+F 1 "2.2K" H -1532 4605 50  0000 L CNN
+F 2 "" V -1560 4640 50  0001 C CNN
+F 3 "~" H -1600 4650 50  0001 C CNN
+	1    -1600 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-1350 3850 -1350 4500
+Wire Wire Line
+	-1350 4500 -1600 4500
+Wire Wire Line
+	-1600 4800 -1000 4800
+Wire Wire Line
+	-1000 4800 -1000 3850
+Wire Wire Line
+	-1600 6150 -1600 5550
+$Comp
+L Device:R_US R_AWD1
+U 1 1 625CE69D
+P -1600 5100
+F 0 "R_AWD1" H -1532 5146 50  0000 L CNN
+F 1 "2.2K" H -1532 5055 50  0000 L CNN
+F 2 "" V -1560 5090 50  0001 C CNN
+F 3 "~" H -1600 5100 50  0001 C CNN
+	1    -1600 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_AWD2
+U 1 1 625CE0AA
+P -1600 5400
+F 0 "R_AWD2" H -1532 5446 50  0000 L CNN
+F 1 "220" H -1532 5355 50  0000 L CNN
+F 2 "" V -1560 5390 50  0001 C CNN
+F 3 "~" H -1600 5400 50  0001 C CNN
+	1    -1600 5400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R_divider1
+U 1 1 617F3307
+P -650 4800
+F 0 "R_divider1" H -582 4846 50  0000 L CNN
+F 1 "22K" H -582 4755 50  0000 L CNN
+F 2 "" V -610 4790 50  0001 C CNN
+F 3 "~" H -650 4800 50  0001 C CNN
+	1    -650 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L CustomLibrary:FCM U1
+U 1 1 616D8314
+P -1400 6250
+F 0 "U1" H -572 6692 50  0000 L CNN
+F 1 "FCM" H -572 6601 50  0000 L CNN
+F 2 "" H -1400 6250 50  0001 C CNN
+F 3 "" H -1400 6250 50  0001 C CNN
+	1    -1400 6250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-650 3850 -650 4650
+Wire Wire Line
+	-1200 6150 -1200 4950
+Wire Wire Line
+	-1200 4950 -1600 4950
+Wire Wire Line
+	-650 4950 -1200 4950
+Connection ~ -1200 4950
+Wire Wire Line
+	1000 7350 5450 7350
+$Comp
+L power:GND #PWR0101
+U 1 1 617C8908
+P 1000 7350
+F 0 "#PWR0101" H 1000 7100 50  0001 C CNN
+F 1 "GND" H 1005 7177 50  0000 C CNN
+F 2 "" H 1000 7350 50  0001 C CNN
+F 3 "" H 1000 7350 50  0001 C CNN
+	1    1000 7350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW?
+U 1 1 620DAFBE
+P 2600 1450
+F 0 "SW?" H 2600 1685 50  0000 C CNN
+F 1 "BlueCap SW (W/ LED)" H 2600 1594 50  0000 C CNN
+F 2 "" H 2600 1450 50  0001 C CNN
+F 3 "~" H 2600 1450 50  0001 C CNN
+	1    2600 1450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2100 1050 2400 1050
+Wire Wire Line
+	2400 1050 2400 1450
+Connection ~ 2100 1050
 $EndSCHEMATC
