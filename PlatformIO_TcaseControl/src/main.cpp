@@ -223,6 +223,7 @@ void readOnly() {
 }
 
 void manualControl() {
+  PWM_MAX_POWER = 255;  // Might as well have access to full power if in Manual mode.
   int dirRead = digitalRead(manualDirectionPin);
   int dir = 0;
   char msg[30];

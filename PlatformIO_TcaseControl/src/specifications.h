@@ -79,7 +79,7 @@ const float PWM_ACCELERATION = 2.0; // Not specified in manual (only says "speci
 // Not specified in manual (says "specified rate based upon difference between desired position and current position")
 // float PWM_DECELERATION_RELATION = 0.50; // % decrease of duty per cycle (to be multipled by an inverse distance)
 // const float PWM_DECELERATION_DISTANCE = 0.2;  // Voltage distance at which to start decelerating
-const byte PWM_MAX_POWER = 180; // TESTING ONLY: Mostly for testing so that the max power can be reduced (out of 255)
+byte PWM_MAX_POWER = 180; // Max power is 255. 180 seems to work fine for normal use. Power gets redefined to 255 if in manual mode
 const byte PWM_MIN_POWER = 50; // Not specified in manual - probably need some minimum power to actually make motor move
 
 // Shift Brake Release time
