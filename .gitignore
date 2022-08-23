@@ -1,3 +1,6 @@
+
+PlatformIO_TcaseControl/.vscode/
+
 # Prerequisites
 *.d
 
@@ -50,3 +53,4 @@ PlatformIO_TcaseControl/src/.idea/misc.xml
 /httpRequests/
 
 **/.idea/
+

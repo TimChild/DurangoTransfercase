@@ -20,10 +20,11 @@
 // const int SCREEN_HEIGHT = 128;
 const int SCREEN_WIDTH = 240;
 const int SCREEN_HEIGHT = 240;
-#define TOP_MARGIN 5
-#define RIGHT_MARGIN 5
-#define BOTTOM_MARGIN 5
-#define LEFT_MARGIN 20
+#define TOP_MARGIN 23
+#define RIGHT_MARGIN 2
+#define BOTTOM_MARGIN 0
+#define LEFT_MARGIN 23
+
 const byte SF = 2;  // Overall Scale Factor for display (i.e. 1 for 128x128px, 2 for 240x240px to make things look similar size)
 const int maxChars = (SCREEN_WIDTH-RIGHT_MARGIN-LEFT_MARGIN)/6/SF;  // Max no. characters per row on screen
 
@@ -140,17 +141,17 @@ class ScreenOut {
             tft->setTextColor(textColor);
             tft->setTextWrap(false);
 
-            tft->drawRoundRect(LEFT_MARGIN, TOP_MARGIN, SCREEN_WIDTH/2-LEFT_MARGIN, 70*SF-TOP_MARGIN, 4*SF, boxColor);  // For Switch
+            tft->drawRoundRect(LEFT_MARGIN, TOP_MARGIN, SCREEN_WIDTH/2-LEFT_MARGIN, 65*SF, 4*SF, boxColor);  // For Switch
             tft->setCursor(LEFT_MARGIN+4*SF, TOP_MARGIN+2*SF);
             tft->print(F("Switch"));
             tft->drawFastHLine(LEFT_MARGIN+4*SF, TOP_MARGIN+17*SF, SCREEN_WIDTH/2-LEFT_MARGIN - 8*SF, boxColor);
 
-            tft->drawRoundRect(SCREEN_WIDTH/2, TOP_MARGIN+0*SF, SCREEN_WIDTH/2-RIGHT_MARGIN, 70*SF-TOP_MARGIN, 4*SF, boxColor);  // For Motor
+            tft->drawRoundRect(SCREEN_WIDTH/2, TOP_MARGIN+0*SF, SCREEN_WIDTH/2-RIGHT_MARGIN, 65*SF, 4*SF, boxColor);  // For Motor
             tft->setCursor(SCREEN_WIDTH/2+4*SF, TOP_MARGIN+2*SF);
             tft->print(F("Motor"));
             tft->drawFastHLine(SCREEN_WIDTH/2+4*SF, 17*SF+TOP_MARGIN, SCREEN_WIDTH/2 - 8*SF - RIGHT_MARGIN, boxColor);
 
-            tft->drawRoundRect(LEFT_MARGIN+0, 70*SF+TOP_MARGIN, SCREEN_WIDTH-LEFT_MARGIN-RIGHT_MARGIN, SCREEN_HEIGHT-70*SF-BOTTOM_MARGIN-TOP_MARGIN, 4*SF, boxColor);  // For extra text
+            tft->drawRoundRect(LEFT_MARGIN+0, 65*SF+TOP_MARGIN, SCREEN_WIDTH-LEFT_MARGIN-RIGHT_MARGIN, SCREEN_HEIGHT-65*SF-BOTTOM_MARGIN-TOP_MARGIN, 4*SF, boxColor);  // For extra text
 
             currentLayout = 1;
         }
@@ -176,6 +177,7 @@ class ScreenOut {
         void begin() {
             // tft->initR(INITR_144GREENTAB);
             tft->init(240, 240);
+            tft->setSPISpeed(2000000);
             // tft->setRotation(3);
             tft->setRotation(2);
             tft->fillScreen(ST77XX_BLACK);
