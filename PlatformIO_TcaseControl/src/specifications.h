@@ -16,7 +16,7 @@ const int SW_SHORTED_HIGH = 0; // Spec = 150;  // Since I subtract an assumed re
 // const int SW_N_LO_LOW = 199;
 // const int SW_N_LO_HIGH = 226;
 const int SW_N_LOW = 20;        // Not spec
-const int SW_N_HIGH = 300;      // Not spec
+const int SW_N_HIGH = 450;      // Not spec (Spec says ~200. 2024-10-19 -- 392 Ohm reported...) 
 const int SW_AWD_LOW = 1050;  //Spec = 1159;
 const int SW_AWD_HIGH = 1287;
 const int SW_LOCK_LOW = 2259;
